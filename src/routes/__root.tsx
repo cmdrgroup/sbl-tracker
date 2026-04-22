@@ -37,8 +37,6 @@ export const Route = createRootRoute({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Command Overlay" },
       { name: "twitter:description", content: "Run the operational picture for every client from one place." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5bd0bce2-9f0c-4d10-a46c-18d8e4416c58/id-preview-0522b22e--13a20b8a-f8ea-468b-bb81-7c6fa105c71b.lovable.app-1776738220929.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5bd0bce2-9f0c-4d10-a46c-18d8e4416c58/id-preview-0522b22e--13a20b8a-f8ea-468b-bb81-7c6fa105c71b.lovable.app-1776738220929.png" },
     ],
     links: [
       {
