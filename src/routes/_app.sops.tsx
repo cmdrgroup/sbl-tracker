@@ -1,10 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Filter, Plus } from "lucide-react";
+import { Search, Filter, Plus, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { sops } from "@/lib/demo-data";
+import { usePlaybooks } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
+import type { Playbook } from "@/lib/types";
+
+function timeAgo(dateStr: string): string {
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diffMs = now.getTime() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "Yesterday";
+  return `${days}d ago`;
+}
 
 export const Route = createFileRoute("/_app/sops")({
   component: SopsPage,
@@ -29,15 +43,24 @@ const STATUS_CLASS: Record<string, string> = {
 
 function SopsPage() {
   const { client } = useRequiredClient();
+  const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
 
-  const filtered = sops.filter(
+  const filtered = playbooks.filter(
     (s) =>
       s.title.toLowerCase().includes(q.toLowerCase()) ||
-      s.code.toLowerCase().includes(q.toLowerCase()) ||
-      s.owner.toLowerCase().includes(q.toLowerCase()),
+      (s.code ?? "").toLowerCase().includes(q.toLowerCase()) ||
+      (s.owner_name ?? "").toLowerCase().includes(q.toLowerCase()),
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">
@@ -103,11 +126,11 @@ function SopsPage() {
                           STATUS_CLASS[s.status],
                         )}
                       >
-                        <div className="text-[10px] font-mono text-muted-foreground">{s.code}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground">{s.code ?? "—"}</div>
                         <div className="text-[12px] font-medium mt-0.5 leading-snug">{s.title}</div>
                         <div className="flex items-center justify-between mt-2 text-[10px]">
-                          <span className="text-muted-foreground">{s.owner.split(" ")[0]}</span>
-                          {s.loomMinutes && <span className="font-mono text-primary">▶ {s.loomMinutes}m</span>}
+                          <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
+                          {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
                         </div>
                       </div>
                     ))}
@@ -126,10 +149,10 @@ function SopsPage() {
               </div>
               {filtered.map((s) => (
                 <div key={s.id} className="grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0">
-                  <div className="font-mono text-[11px] text-muted-foreground">{s.code}</div>
+                  <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
                   <div className="truncate">{s.title}</div>
-                  <div className="text-muted-foreground text-[11px]">{s.department}</div>
-                  <div className="text-muted-foreground text-[11px]">{s.owner}</div>
+                  <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
+                  <div className="text-muted-foreground text-[11px]">{s.owner_name ?? "—"}</div>
                   <div>
                     <span className={cn(
                       "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider",
@@ -142,7 +165,7 @@ function SopsPage() {
                       {s.status.replace("_", " ")}
                     </span>
                   </div>
-                  <div className="text-right text-[10px] text-muted-foreground font-mono">{s.updatedAt}</div>
+                  <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
                 </div>
               ))}
             </div>

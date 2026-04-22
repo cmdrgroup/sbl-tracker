@@ -1,28 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, Plus } from "lucide-react";
+import { Mail, Plus, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { departments } from "@/lib/demo-data";
+import { useWorkstreams, usePlaybooks } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
+import { useMemo } from "react";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
   head: () => ({ meta: [{ title: "Team — Command Overlay" }] }),
 });
 
-const emailDomain = (name: string) =>
-  name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "") + ".com";
+const HUES = [80, 28, 145, 220, 295, 60, 175, 340];
 
-const PEOPLE = departments.map((d, i) => ({
-  name: d.owner,
-  role: `Head of ${d.name}`,
-  department: d.name,
-  emailUser: d.owner.toLowerCase().replace(/[^a-z]/g, "."),
-  sops: d.total,
-  approved: d.approved,
-  load: ["light", "balanced", "heavy", "stretched"][i % 4],
-  initials: d.owner.split(" ").map((p) => p[0]).join(""),
-  hue: [80, 28, 145, 220, 295, 60, 175][i % 7],
-}));
+function getInitials(name: string): string {
+  return name.split(" ").map((p) => p[0]).join("").toUpperCase();
+}
+
+function getLoad(approved: number, total: number): string {
+  if (total === 0) return "light";
+  const pct = approved / total;
+  if (pct >= 0.75) return "light";
+  if (pct >= 0.5) return "balanced";
+  if (pct >= 0.25) return "heavy";
+  return "stretched";
+}
 
 const LOAD_CLS: Record<string, string> = {
   light: "bg-success/15 text-success border-success/30",
@@ -33,6 +34,35 @@ const LOAD_CLS: Record<string, string> = {
 
 function TeamPage() {
   const { client } = useRequiredClient();
+  const { data: workstreams = [], isLoading: loadingWs } = useWorkstreams(client.id);
+  const { data: playbooks = [], isLoading: loadingPb } = usePlaybooks(client.id);
+
+  const people = useMemo(() => {
+    return workstreams.map((ws, i) => {
+      const items = playbooks.filter((p) => p.workstream_id === ws.id);
+      const total = items.length;
+      const approved = items.filter((p) => p.status === "approved").length;
+      return {
+        id: ws.id,
+        name: ws.owner_name ?? ws.name,
+        role: `Head of ${ws.name}`,
+        department: ws.name,
+        sops: total,
+        approved,
+        load: getLoad(approved, total),
+        initials: getInitials(ws.owner_name ?? ws.name),
+        hue: HUES[i % HUES.length],
+      };
+    });
+  }, [workstreams, playbooks]);
+
+  if (loadingWs || loadingPb) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">
@@ -48,10 +78,10 @@ function TeamPage() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {PEOPLE.map((p) => {
-          const pct = Math.round((p.approved / p.sops) * 100);
+        {people.map((p) => {
+          const pct = p.sops > 0 ? Math.round((p.approved / p.sops) * 100) : 0;
           return (
-            <Panel key={p.name}>
+            <Panel key={p.id}>
               <div className="flex items-start gap-3">
                 <div
                   className="h-12 w-12 rounded-lg flex items-center justify-center text-[14px] font-bold shrink-0"
@@ -62,10 +92,6 @@ function TeamPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-display text-[16px] md:text-[18px] font-semibold leading-tight truncate">{p.name}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{p.role}</div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1.5 font-mono">
-                    <Mail className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{p.emailUser}@{emailDomain(client.name)}</span>
-                  </div>
                 </div>
                 <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${LOAD_CLS[p.load]}`}>
                   {p.load}
@@ -74,7 +100,7 @@ function TeamPage() {
 
               <div className="mt-4">
                 <div className="flex items-baseline justify-between mb-1.5">
-                  <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">SOP Ownership</span>
+                  <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Playbook Progress</span>
                   <span className="text-[12px] font-semibold tabular-nums">{p.approved}<span className="text-muted-foreground">/{p.sops}</span></span>
                 </div>
                 <div className="h-1.5 rounded-full bg-secondary/60 overflow-hidden">

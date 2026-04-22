@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BookOpen, ArrowUpRight, Sparkles } from "lucide-react";
+import { BookOpen, ArrowUpRight, Sparkles, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { departments, playbookTrend } from "@/lib/demo-data";
+import { usePlaybooks, useWorkstreams } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
+import { useMemo } from "react";
 
 export const Route = createFileRoute("/_app/playbooks")({
   component: PlaybooksPage,
@@ -11,9 +12,33 @@ export const Route = createFileRoute("/_app/playbooks")({
 
 function PlaybooksPage() {
   const { client } = useRequiredClient();
-  const total = departments.reduce((s, d) => s + d.total, 0);
-  const approved = departments.reduce((s, d) => s + d.approved, 0);
-  const pct = Math.round((approved / total) * 100);
+  const { data: playbooks = [], isLoading: loadingPb } = usePlaybooks(client.id);
+  const { data: workstreams = [], isLoading: loadingWs } = useWorkstreams(client.id);
+
+  // Aggregate per-workstream stats from real playbook data
+  const wsStats = useMemo(() => {
+    return workstreams.map((ws) => {
+      const items = playbooks.filter((p) => p.workstream_id === ws.id);
+      const total = items.length;
+      const approved = items.filter((p) => p.status === "approved").length;
+      const inReview = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
+      const notStarted = items.filter((p) => p.status === "not_started").length;
+      return { ...ws, total, approved, inReview, notStarted };
+    });
+  }, [workstreams, playbooks]);
+
+  const total = playbooks.length;
+  const approved = playbooks.filter((p) => p.status === "approved").length;
+  const submitted = playbooks.filter((p) => p.status === "submitted").length;
+  const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+  if (loadingPb || loadingWs) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">
@@ -29,7 +54,7 @@ function PlaybooksPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Panel title="Overall Completion" subtitle="Across 7 departments">
+        <Panel title="Overall Completion" subtitle={`Across ${workstreams.length} departments`}>
           <div className="flex items-end gap-2">
             <span className="font-display text-[44px] md:text-[56px] leading-none font-semibold">{pct}</span>
             <span className="text-[18px] text-muted-foreground mb-2">%</span>
@@ -37,46 +62,47 @@ function PlaybooksPage() {
           <div className="h-1.5 mt-3 rounded-full bg-secondary/60 overflow-hidden">
             <div className="bg-primary h-full" style={{ width: `${pct}%` }} />
           </div>
-          <div className="text-[11px] font-mono text-muted-foreground mt-2">{approved} of {total} SOPs approved</div>
+          <div className="text-[11px] font-mono text-muted-foreground mt-2">{approved} of {total} playbooks approved</div>
         </Panel>
 
-        <Panel title="14-Week Trend" subtitle="Playbook completion %">
-          <Sparkline data={playbookTrend} />
-          <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-2">
-            <span>Wk 1</span><span>Wk 7</span><span>Wk 14</span>
+        <Panel title="Pipeline" subtitle="By status">
+          <div className="space-y-2 text-[13px]">
+            <Stat label="Approved" value={String(approved)} />
+            <Stat label="Submitted" value={String(submitted)} />
+            <Stat label="In review / Refined" value={String(playbooks.filter(p => p.status === "under_review" || p.status === "refined").length)} />
+            <Stat label="Not started" value={String(playbooks.filter(p => p.status === "not_started").length)} />
           </div>
         </Panel>
 
         <Panel title="This Week" subtitle="Velocity indicators" accent>
           <div className="space-y-2 text-[13px]">
-            <Stat label="New SOPs filmed" value="13" />
-            <Stat label="Approved" value="9" />
-            <Stat label="Returned for refinement" value="2" />
-            <Stat label="Days saved (est.)" value="41" />
+            <Stat label="Total playbooks" value={String(total)} />
+            <Stat label="Departments" value={String(workstreams.length)} />
+            <Stat label="Completion" value={`${pct}%`} />
           </div>
         </Panel>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {departments.map((d) => {
-          const pct = Math.round((d.approved / d.total) * 100);
+        {wsStats.map((d) => {
+          const dpct = d.total > 0 ? Math.round((d.approved / d.total) * 100) : 0;
           return (
-            <Panel key={d.name}>
+            <Panel key={d.id}>
               <div className="flex items-start justify-between mb-3 gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span className="font-display text-[16px] md:text-[18px] font-semibold truncate">{d.name}</span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground mt-1 truncate">Owner · {d.owner}</div>
+                  <div className="text-[11px] text-muted-foreground mt-1 truncate">Owner · {d.owner_name ?? "—"}</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-display text-[24px] md:text-[28px] leading-none font-semibold">{pct}<span className="text-[12px] text-muted-foreground">%</span></div>
+                  <div className="font-display text-[24px] md:text-[28px] leading-none font-semibold">{dpct}<span className="text-[12px] text-muted-foreground">%</span></div>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-secondary/60 overflow-hidden flex">
-                <div className="bg-success h-full" style={{ width: `${(d.approved / d.total) * 100}%` }} />
-                <div className="bg-warning/70 h-full" style={{ width: `${(d.inReview / d.total) * 100}%` }} />
+                <div className="bg-success h-full" style={{ width: `${d.total > 0 ? (d.approved / d.total) * 100 : 0}%` }} />
+                <div className="bg-warning/70 h-full" style={{ width: `${d.total > 0 ? (d.inReview / d.total) * 100 : 0}%` }} />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-mono text-muted-foreground">
@@ -105,21 +131,3 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Sparkline({ data }: { data: number[] }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${40 - ((v - min) / range) * 36}`).join(" ");
-  return (
-    <svg viewBox="0 0 100 40" className="w-full h-16" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="oklch(0.72 0.105 80)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="oklch(0.72 0.105 80)" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon fill="url(#g1)" points={`0,40 ${pts} 100,40`} />
-      <polyline fill="none" stroke="oklch(0.72 0.105 80)" strokeWidth="1.5" points={pts} />
-    </svg>
-  );
-}
