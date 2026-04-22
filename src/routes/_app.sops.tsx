@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Search, Filter, Plus } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { sops } from "@/lib/demo-data";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/sops")({
@@ -28,7 +28,7 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 function SopsPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
 

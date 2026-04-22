@@ -5,7 +5,6 @@ import {
   Search, FileText, Users, BookOpen, Sparkles, Plus, BarChart3,
   CheckCircle2, Calendar, Settings, ArrowRight, Zap, Target, Bell,
 } from "lucide-react";
-import { clients } from "@/lib/demo-data";
 import { useActiveClient } from "@/lib/client-context";
 
 type Props = {
@@ -16,7 +15,7 @@ type Props = {
 export function CommandOverlay({ open, onOpenChange }: Props) {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const { setClient } = useActiveClient();
+  const { clients, setClient } = useActiveClient();
 
   const go = (to: string) => {
     navigate({ to });
@@ -114,10 +113,10 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
                     className="h-6 w-6 rounded flex items-center justify-center text-[10px] font-bold shrink-0"
                     style={{ background: c.color, color: "oklch(0.15 0.02 270)" }}
                   >
-                    {c.initials}
+                    {c.name.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
                   </div>
                   <span className="flex-1 text-[13px]">{c.name}</span>
-                  <span className="text-[11px] font-mono text-muted-foreground">health {c.health}</span>
+                  <span className="text-[11px] font-mono text-muted-foreground">health {c.health_score}</span>
                 </Command.Item>
               ))}
             </Command.Group>

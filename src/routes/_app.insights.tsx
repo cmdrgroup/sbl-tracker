@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sparkles, TrendingUp, AlertTriangle, Target, ArrowUpRight } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 
 export const Route = createFileRoute("/_app/insights")({
   component: InsightsPage,
@@ -54,7 +54,7 @@ const SEV_ICON: Record<string, string> = {
 };
 
 function InsightsPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">

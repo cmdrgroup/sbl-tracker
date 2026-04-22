@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen, ArrowUpRight, Sparkles } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { departments, playbookTrend } from "@/lib/demo-data";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 
 export const Route = createFileRoute("/_app/playbooks")({
   component: PlaybooksPage,
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_app/playbooks")({
 });
 
 function PlaybooksPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
   const total = departments.reduce((s, d) => s + d.total, 0);
   const approved = departments.reduce((s, d) => s + d.approved, 0);
   const pct = Math.round((approved / total) * 100);

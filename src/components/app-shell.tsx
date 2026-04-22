@@ -2,9 +2,11 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ClipboardList, Users, Settings, Sparkles,
-  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X,
+  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X, LogOut,
 } from "lucide-react";
-import { clients, type Client } from "@/lib/demo-data";
+import type { Client } from "@/lib/types";
+import { useActiveClient } from "@/lib/client-context";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -24,8 +26,20 @@ const nav = [
   { to: "/settings", label: "Settings", icon: Settings, badge: undefined },
 ] as const;
 
+// Helper: generate initials from a name
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export function AppShell({ children, activeClient, onClientChange, onOpenCommand }: Props) {
   const loc = useLocation();
+  const { clients } = useActiveClient();
+  const { profile, signOut } = useAuth();
   const [clientOpen, setClientOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -67,7 +81,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
             className="h-8 w-8 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0"
             style={{ background: activeClient.color, color: "oklch(0.15 0.02 270)" }}
           >
-            {activeClient.initials}
+            {getInitials(activeClient.name)}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-medium truncate">{activeClient.name}</div>
@@ -92,12 +106,12 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
                   className="h-6 w-6 rounded flex items-center justify-center text-[10px] font-bold"
                   style={{ background: c.color, color: "oklch(0.15 0.02 270)" }}
                 >
-                  {c.initials}
+                  {getInitials(c.name)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[12px] font-medium truncate">{c.name}</div>
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground">{c.health}</div>
+                <div className="text-[10px] font-mono text-muted-foreground">{c.health_score}</div>
               </button>
             ))}
             <div className="border-t border-border mt-1 pt-1">
@@ -144,13 +158,19 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       <div className="p-3 border-t border-border">
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-secondary/40">
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-[11px] font-bold text-background">
-            CD
+            {profile ? getInitials(profile.full_name) : "?"}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[12px] font-medium truncate">Curtis Davies</div>
-            <div className="text-[10px] text-muted-foreground truncate">Fractional COS</div>
+            <div className="text-[12px] font-medium truncate">{profile?.full_name ?? "Loading..."}</div>
+            <div className="text-[10px] text-muted-foreground truncate capitalize">{profile?.role?.replace("_", " ") ?? ""}</div>
           </div>
-          <Activity className="h-3.5 w-3.5 text-success" />
+          <button
+            onClick={signOut}
+            className="h-7 w-7 rounded-md hover:bg-secondary/60 flex items-center justify-center"
+            title="Sign out"
+          >
+            <LogOut className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
         </div>
       </div>
     </>

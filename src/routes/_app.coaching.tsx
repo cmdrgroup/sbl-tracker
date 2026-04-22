@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, Plus, Calendar } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { coachingLogs } from "@/lib/demo-data";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/coaching")({
@@ -18,7 +18,7 @@ const MOOD: Record<string, { label: string; cls: string }> = {
 };
 
 function CoachingPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">

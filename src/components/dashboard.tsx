@@ -1,8 +1,9 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText } from "lucide-react";
 import {
   departments, sops, coachingLogs, activity, actionItems,
-  playbookTrend, sopVelocity, type Client,
+  playbookTrend, sopVelocity,
 } from "@/lib/demo-data";
+import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Props = { client: Client };
@@ -34,9 +35,9 @@ export function Dashboard({ client }: Props) {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="Operational Health" value={client.health} suffix="/100" trend={+4} accent="oklch(0.62 0.22 280)" sparkline={[60, 65, 68, 72, 75, 78, 81, 84, 87]} />
-        <Kpi label="Playbook Progress" value={client.playbookProgress} suffix="%" trend={+8} accent="oklch(0.72 0.18 195)" sparkline={playbookTrend} />
-        <Kpi label="Open SOPs" value={client.openSops} trend={-2} invertTrend accent="oklch(0.78 0.16 75)" sparkline={[12, 11, 10, 9, 8, 7, 6, 5, 4]} />
+        <Kpi label="Operational Health" value={client.health_score} suffix="/100" trend={+4} accent="oklch(0.62 0.22 280)" sparkline={[60, 65, 68, 72, 75, 78, 81, 84, 87]} />
+        <Kpi label="Playbook Progress" value={0} suffix="%" trend={0} accent="oklch(0.72 0.18 195)" sparkline={playbookTrend} />
+        <Kpi label="Open SOPs" value={0} trend={0} invertTrend accent="oklch(0.78 0.16 75)" sparkline={[12, 11, 10, 9, 8, 7, 6, 5, 4]} />
         <Kpi label="SOP Velocity" value={13} suffix="/wk" trend={+18} accent="oklch(0.72 0.18 155)" sparkline={sopVelocity} />
       </div>
 

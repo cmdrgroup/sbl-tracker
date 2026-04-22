@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Mail, Plus } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { departments } from "@/lib/demo-data";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
@@ -32,7 +32,7 @@ const LOAD_CLS: Record<string, string> = {
 };
 
 function TeamPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">

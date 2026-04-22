@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Dashboard } from "@/components/dashboard";
-import { useActiveClient } from "@/lib/client-context";
+import { useRequiredClient } from "@/lib/client-context";
 
 export const Route = createFileRoute("/_app/")({
   component: IndexPage,
@@ -13,6 +13,6 @@ export const Route = createFileRoute("/_app/")({
 });
 
 function IndexPage() {
-  const { client } = useActiveClient();
+  const { client } = useRequiredClient();
   return <Dashboard client={client} />;
 }
