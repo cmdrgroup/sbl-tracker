@@ -34,15 +34,14 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       <aside className="w-[260px] border-r border-border bg-surface/40 flex flex-col">
         {/* Logo */}
         <div className="px-5 py-5 border-b border-border">
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_20px_oklch(0.62_0.22_280_/_0.5)]">
-                <Command className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-md bg-background border border-primary/40 flex items-center justify-center shadow-[0_0_20px_oklch(0.72_0.105_80_/_0.25)]">
+              <Command className="h-4 w-4 text-primary" strokeWidth={2.5} />
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-tight">Command Overlay</div>
-              <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">v2.4 · COS</div>
+              <div className="font-display text-[18px] font-bold tracking-[0.18em] text-primary leading-none">CMDR</div>
+              <div className="text-[10px] text-foreground/80 font-mono uppercase tracking-[0.25em] mt-1">Group · COS</div>
+              <div className="h-[2px] w-10 bg-accent mt-1.5" />
             </div>
           </div>
         </div>
