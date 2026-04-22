@@ -31,12 +31,14 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Command Overlay — Operational Picture for Fractional COS" },
       { name: "description", content: "Multi-tenant operational platform: playbook tracking, SOPs, coaching logs, and accountability for the fractional Chief of Staff." },
-      { property: "og:title", content: "Command Overlay" },
-      { property: "og:description", content: "Run the operational picture for every client from one place." },
+      { property: "og:title", content: "Command Overlay — Operational Picture for Fractional COS" },
+      { property: "og:description", content: "Multi-tenant operational platform: playbook tracking, SOPs, coaching logs, and accountability for the fractional Chief of Staff." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Command Overlay" },
-      { name: "twitter:description", content: "Run the operational picture for every client from one place." },
+      { name: "twitter:title", content: "Command Overlay — Operational Picture for Fractional COS" },
+      { name: "twitter:description", content: "Multi-tenant operational platform: playbook tracking, SOPs, coaching logs, and accountability for the fractional Chief of Staff." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/04cf04c9-a60c-46a7-a562-596567d375e2/id-preview-cbad7a14--7f3c402a-6e32-4c66-aefb-585a594856d7.lovable.app-1776830016362.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/04cf04c9-a60c-46a7-a562-596567d375e2/id-preview-cbad7a14--7f3c402a-6e32-4c66-aefb-585a594856d7.lovable.app-1776830016362.png" },
     ],
     links: [
       {
