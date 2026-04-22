@@ -21,33 +21,33 @@ function CoachingPage() {
   const { client } = useActiveClient();
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px]">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">
       <PageHeader
         eyebrow={`${client.name} · Captain's Table`}
         title="Coaching Logs"
         subtitle="Every weekly session captured. Decisions, mood, momentum — the operator's record."
         actions={
           <button className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Log this week
+            <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Log this week</span><span className="sm:hidden">Log</span>
           </button>
         }
       />
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Panel title="Sessions Logged" subtitle="All time">
-          <div className="font-display text-[44px] leading-none font-semibold">14</div>
+          <div className="font-display text-[32px] md:text-[44px] leading-none font-semibold">14</div>
           <div className="text-[11px] font-mono text-muted-foreground mt-1">100% adherence</div>
         </Panel>
         <Panel title="Decisions Locked" subtitle="Last 90 days">
-          <div className="font-display text-[44px] leading-none font-semibold">37</div>
+          <div className="font-display text-[32px] md:text-[44px] leading-none font-semibold">37</div>
           <div className="text-[11px] font-mono text-success mt-1">+8 vs prior 90</div>
         </Panel>
         <Panel title="Avg Mood" subtitle="Trailing 4 weeks">
-          <div className="font-display text-[44px] leading-none font-semibold text-success">Steady</div>
+          <div className="font-display text-[32px] md:text-[44px] leading-none font-semibold text-success">Steady</div>
           <div className="text-[11px] font-mono text-muted-foreground mt-1">Trending up</div>
         </Panel>
         <Panel title="Next Session" subtitle="Captain's Table" accent>
-          <div className="font-display text-[28px] leading-none font-semibold">Tue · 7:00am</div>
+          <div className="font-display text-[20px] md:text-[28px] leading-none font-semibold">Tue · 7:00am</div>
           <div className="text-[11px] font-mono text-muted-foreground mt-1">Week 15 · in 4 days</div>
         </Panel>
       </div>
@@ -55,22 +55,22 @@ function CoachingPage() {
       <div className="space-y-3">
         {coachingLogs.map((log) => (
           <Panel key={log.id}>
-            <div className="grid grid-cols-[120px_1fr] gap-6">
-              <div className="border-r border-border pr-6">
+            <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4 md:gap-6">
+              <div className="md:border-r md:border-border md:pr-6 pb-3 md:pb-0 border-b md:border-b-0 border-border">
                 <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Week {log.week}</div>
-                <div className="font-display text-[28px] font-semibold mt-1">{log.date}</div>
+                <div className="font-display text-[24px] md:text-[28px] font-semibold mt-1">{log.date}</div>
                 <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider mt-3", MOOD[log.mood].cls)}>
                   {MOOD[log.mood].label}
                 </span>
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-3">
                   <Calendar className="h-3 w-3" />
-                  <span>{client.name}</span>
+                  <span className="truncate">{client.name}</span>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Summary</div>
-                  <p className="text-[14px] leading-relaxed">{log.summary}</p>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed">{log.summary}</p>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">Decisions Locked</div>
