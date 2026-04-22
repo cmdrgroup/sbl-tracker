@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plug, Bell, Shield, CreditCard, Users, Command } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
+import { useActiveClient } from "@/lib/client-context";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
@@ -17,10 +18,11 @@ const INTEGRATIONS = [
 ];
 
 function SettingsPage() {
+  const { client } = useActiveClient();
   return (
     <div className="p-6 space-y-6 max-w-[1100px]">
       <PageHeader
-        eyebrow="Workspace"
+        eyebrow={`${client.name} · Workspace`}
         title="Settings"
         subtitle="Configure your Command Overlay workspace, integrations, and team."
       />
@@ -53,7 +55,7 @@ function SettingsPage() {
         <div className="space-y-4">
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
-              <Field label="Workspace name" value="CMDR Group · Curtis Davies" />
+              <Field label="Workspace name" value={`${client.name} · Curtis Davies`} />
               <Field label="Default timezone" value="Australia / Brisbane (AEST)" />
               <Field label="Week starts on" value="Monday" />
               <Field label="Captain's Table cadence" value="Tuesdays · 7:00am" />
@@ -108,6 +110,7 @@ function Field({ label, value }: { label: string; value: string }) {
     <div className="grid grid-cols-[160px_1fr] items-center gap-3">
       <label className="text-[12px] text-muted-foreground">{label}</label>
       <input
+        key={value}
         defaultValue={value}
         className="bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
       />

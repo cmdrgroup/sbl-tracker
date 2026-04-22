@@ -64,7 +64,7 @@ function CoachingPage() {
                 </span>
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-3">
                   <Calendar className="h-3 w-3" />
-                  <span>{log.client}</span>
+                  <span>{client.name}</span>
                 </div>
               </div>
               <div className="space-y-4">
