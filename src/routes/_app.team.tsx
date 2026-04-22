@@ -9,11 +9,14 @@ export const Route = createFileRoute("/_app/team")({
   head: () => ({ meta: [{ title: "Team — Command Overlay" }] }),
 });
 
+const emailDomain = (name: string) =>
+  name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "") + ".com";
+
 const PEOPLE = departments.map((d, i) => ({
   name: d.owner,
   role: `Head of ${d.name}`,
   department: d.name,
-  email: d.owner.toLowerCase().replace(/[^a-z]/g, ".") + "@client.com",
+  emailUser: d.owner.toLowerCase().replace(/[^a-z]/g, "."),
   sops: d.total,
   approved: d.approved,
   load: ["light", "balanced", "heavy", "stretched"][i % 4],
@@ -61,7 +64,7 @@ function TeamPage() {
                   <div className="text-[11px] text-muted-foreground">{p.role}</div>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1.5 font-mono">
                     <Mail className="h-3 w-3" />
-                    <span className="truncate">{p.email}</span>
+                    <span className="truncate">{p.emailUser}@{emailDomain(client.name)}</span>
                   </div>
                 </div>
                 <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${LOAD_CLS[p.load]}`}>
