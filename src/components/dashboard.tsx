@@ -1,8 +1,8 @@
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2 } from "lucide-react";
-import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems } from "@/lib/hooks";
+import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus } from "lucide-react";
+import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem } from "@/lib/hooks";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 type Props = { client: Client };
 
@@ -30,6 +30,35 @@ export function Dashboard({ client }: Props) {
   const { data: coachingLogs = [] } = useCoachingLogs(client.id);
   const { data: activityFeed = [] } = useActivityFeed(client.id);
   const { data: actionItemsList = [] } = useActionItems(client.id);
+  const updateAction = useUpdateActionItem();
+  const createAction = useCreateActionItem();
+  const [newActionTitle, setNewActionTitle] = useState("");
+  const [newActionOwner, setNewActionOwner] = useState("");
+  const [showAddAction, setShowAddAction] = useState(false);
+
+  const handleToggleAction = (id: string, currentStatus: string) => {
+    updateAction.mutate({
+      id,
+      status: currentStatus === "done" ? "open" : "done",
+      completed_at: currentStatus === "done" ? null : new Date().toISOString(),
+    });
+  };
+
+  const handleAddAction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newActionTitle.trim()) return;
+    await createAction.mutateAsync({
+      client_id: client.id,
+      title: newActionTitle.trim(),
+      owner_name: newActionOwner.trim() || null,
+      due_date: null,
+      status: "open",
+      coaching_log_id: null,
+    });
+    setNewActionTitle("");
+    setNewActionOwner("");
+    setShowAddAction(false);
+  };
 
   const wsStats = useMemo(() => {
     return workstreams.map((ws) => {
@@ -251,7 +280,12 @@ export function Dashboard({ client }: Props) {
                 "flex items-start gap-2 p-2 rounded-md hover:bg-secondary/40",
                 a.status === "done" && "opacity-50",
               )}>
-                <input type="checkbox" defaultChecked={a.status === "done"} className="mt-0.5 accent-primary" />
+                <input
+                  type="checkbox"
+                  checked={a.status === "done"}
+                  onChange={() => handleToggleAction(a.id, a.status)}
+                  className="mt-0.5 accent-primary cursor-pointer"
+                />
                 <div className="flex-1 min-w-0">
                   <div className={cn("text-[12px]", a.status === "done" && "line-through")}>{a.title}</div>
                   <div className="flex items-center gap-2 text-[10px] font-mono mt-0.5">
@@ -267,6 +301,37 @@ export function Dashboard({ client }: Props) {
               <div className="text-[12px] text-muted-foreground">No action items yet.</div>
             )}
           </div>
+
+          {/* Quick-add action */}
+          {showAddAction ? (
+            <form onSubmit={handleAddAction} className="mt-3 pt-3 border-t border-border space-y-2">
+              <input
+                value={newActionTitle}
+                onChange={(e) => setNewActionTitle(e.target.value)}
+                placeholder="What needs to happen?"
+                autoFocus
+                className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[12px] outline-none focus:border-primary/40"
+              />
+              <input
+                value={newActionOwner}
+                onChange={(e) => setNewActionOwner(e.target.value)}
+                placeholder="Owner (optional)"
+                className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[12px] outline-none focus:border-primary/40"
+              />
+              <div className="flex items-center gap-2">
+                <button type="submit" disabled={createAction.isPending || !newActionTitle.trim()} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[11px] font-medium disabled:opacity-50">
+                  {createAction.isPending ? "Adding..." : "Add"}
+                </button>
+                <button type="button" onClick={() => { setShowAddAction(false); setNewActionTitle(""); setNewActionOwner(""); }} className="px-3 py-1.5 rounded-md bg-secondary/60 border border-border text-[11px]">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button onClick={() => setShowAddAction(true)} className="mt-3 pt-3 border-t border-border w-full flex items-center gap-1.5 text-[11px] text-primary hover:underline">
+              <Plus className="h-3 w-3" /> Add action item
+            </button>
+          )}
         </Panel>
       </div>
     </div>

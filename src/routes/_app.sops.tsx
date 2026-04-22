@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Filter, Plus, Loader2 } from "lucide-react";
+import { Search, Filter, Plus, Loader2, X } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { usePlaybooks } from "@/lib/hooks";
+import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
 import type { Playbook } from "@/lib/types";
@@ -44,8 +44,45 @@ const STATUS_CLASS: Record<string, string> = {
 function SopsPage() {
   const { client } = useRequiredClient();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
+  const { data: workstreams = [] } = useWorkstreams(client.id);
+  const createPlaybook = useCreatePlaybook();
+  const updatePlaybook = useUpdatePlaybook();
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  // New playbook form state
+  const [formTitle, setFormTitle] = useState("");
+  const [formCode, setFormCode] = useState("");
+  const [formOwner, setFormOwner] = useState("");
+  const [formWorkstream, setFormWorkstream] = useState("");
+  const [formType, setFormType] = useState<Playbook["type"]>("sop");
+  const [formStatus, setFormStatus] = useState<Playbook["status"]>("not_started");
+  const [formLoomUrl, setFormLoomUrl] = useState("");
+  const [formLoomMin, setFormLoomMin] = useState("");
+
+  const resetForm = () => {
+    setFormTitle(""); setFormCode(""); setFormOwner(""); setFormWorkstream("");
+    setFormType("sop"); setFormStatus("not_started"); setFormLoomUrl(""); setFormLoomMin("");
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await createPlaybook.mutateAsync({
+      client_id: client.id,
+      title: formTitle,
+      code: formCode || null,
+      owner_name: formOwner || null,
+      workstream_id: formWorkstream || null,
+      type: formType,
+      status: formStatus,
+      loom_url: formLoomUrl || null,
+      loom_duration_min: formLoomMin ? Number(formLoomMin) : null,
+      notes: null,
+    });
+    resetForm();
+    setShowForm(false);
+  };
 
   const filtered = playbooks.filter(
     (s) =>
@@ -69,11 +106,88 @@ function SopsPage() {
         title="Standard Operating Procedures"
         subtitle="Track every SOP from filmed to approved. Drag, review, ship."
         actions={
-          <button className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5">
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
+          >
             <Plus className="h-3.5 w-3.5" /> New SOP
           </button>
         }
       />
+
+      {/* ─── New SOP slide-down form ─── */}
+      {showForm && (
+        <Panel>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[13px] font-semibold">New Playbook Entry</div>
+              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Title *</label>
+                <input required value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g. Site mobilisation checklist" className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Code</label>
+                <input value={formCode} onChange={(e) => setFormCode(e.target.value)} placeholder="e.g. OPS-014" className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Owner</label>
+                <input value={formOwner} onChange={(e) => setFormOwner(e.target.value)} placeholder="e.g. Katie" className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Department</label>
+                <select value={formWorkstream} onChange={(e) => setFormWorkstream(e.target.value)} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40">
+                  <option value="">— Select —</option>
+                  {workstreams.map((ws) => (
+                    <option key={ws.id} value={ws.id}>{ws.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Type</label>
+                <select value={formType} onChange={(e) => setFormType(e.target.value as Playbook["type"])} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40">
+                  {["sop", "framework", "script", "policy", "campaign", "playbook", "other"].map((t) => (
+                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Status</label>
+                <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as Playbook["status"])} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40">
+                  {COLUMNS.map((c) => (
+                    <option key={c.key} value={c.key}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Loom URL</label>
+                <input value={formLoomUrl} onChange={(e) => setFormLoomUrl(e.target.value)} placeholder="https://loom.com/..." className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+              </div>
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Duration (min)</label>
+                <input type="number" value={formLoomMin} onChange={(e) => setFormLoomMin(e.target.value)} placeholder="e.g. 12" className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button type="submit" disabled={createPlaybook.isPending || !formTitle} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50">
+                {createPlaybook.isPending ? "Saving..." : "Create Playbook"}
+              </button>
+              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="px-4 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                Cancel
+              </button>
+              {createPlaybook.isError && (
+                <span className="text-[11px] text-destructive">{(createPlaybook.error as Error).message}</span>
+              )}
+            </div>
+          </form>
+        </Panel>
+      )}
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
         <div className="flex-1 relative">
