@@ -18,8 +18,8 @@ export function Dashboard({ client }: Props) {
             <span>·</span>
             <span>Week 14</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight">
-            Good morning, Curtis. <span className="text-muted-foreground">Here's where {client.name} stands.</span>
+          <h1 className="font-display text-[34px] font-semibold tracking-tight leading-tight">
+            Good morning, Curtis. <span className="text-muted-foreground italic">Here's where {client.name} stands.</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
