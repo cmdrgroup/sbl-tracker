@@ -20,15 +20,15 @@ const INTEGRATIONS = [
 function SettingsPage() {
   const { client } = useActiveClient();
   return (
-    <div className="p-6 space-y-6 max-w-[1100px]">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1100px]">
       <PageHeader
         eyebrow={`${client.name} · Workspace`}
         title="Settings"
         subtitle="Configure your Command Overlay workspace, integrations, and team."
       />
 
-      <div className="grid grid-cols-[200px_1fr] gap-6">
-        <nav className="space-y-0.5">
+      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 md:gap-6">
+        <nav className="flex md:block gap-1 md:space-y-0.5 overflow-x-auto scrollbar-thin -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
           {[
             { label: "Workspace", icon: Command, active: true },
             { label: "Team", icon: Users },
@@ -41,7 +41,7 @@ function SettingsPage() {
             return (
               <button
                 key={s.label}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-left ${
+                className={`shrink-0 md:w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-left whitespace-nowrap ${
                   s.active ? "bg-primary/15 text-foreground border border-primary/30" : "text-muted-foreground hover:bg-secondary/40 border border-transparent"
                 }`}
               >
@@ -63,7 +63,7 @@ function SettingsPage() {
           </Panel>
 
           <Panel title="Integrations" subtitle="Connect the systems your clients already use">
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {INTEGRATIONS.map((i) => (
                 <div key={i.name} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 transition-colors">
                   <div
@@ -77,11 +77,11 @@ function SettingsPage() {
                     <div className="text-[10px] text-muted-foreground truncate">{i.desc}</div>
                   </div>
                   {i.connected ? (
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30">
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 shrink-0">
                       Connected
                     </span>
                   ) : (
-                    <button className="text-[11px] font-medium text-primary hover:underline">Connect</button>
+                    <button className="text-[11px] font-medium text-primary hover:underline shrink-0">Connect</button>
                   )}
                 </div>
               ))}
@@ -89,12 +89,12 @@ function SettingsPage() {
           </Panel>
 
           <Panel title="Danger zone" subtitle="Irreversible actions">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-destructive/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-destructive/30">
               <div>
                 <div className="text-[13px] font-medium">Archive workspace</div>
                 <div className="text-[11px] text-muted-foreground">Read-only after archive. Re-activation requires support.</div>
               </div>
-              <button className="px-3 py-1.5 rounded-md bg-destructive/15 text-destructive border border-destructive/30 text-[12px] font-medium">
+              <button className="px-3 py-1.5 rounded-md bg-destructive/15 text-destructive border border-destructive/30 text-[12px] font-medium shrink-0 self-start sm:self-auto">
                 Archive
               </button>
             </div>
@@ -107,12 +107,12 @@ function SettingsPage() {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[160px_1fr] items-center gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start sm:items-center gap-1.5 sm:gap-3">
       <label className="text-[12px] text-muted-foreground">{label}</label>
       <input
         key={value}
         defaultValue={value}
-        className="bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
+        className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
       />
     </div>
   );

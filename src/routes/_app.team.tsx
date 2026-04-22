@@ -35,19 +35,19 @@ function TeamPage() {
   const { client } = useActiveClient();
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px]">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px]">
       <PageHeader
         eyebrow={`${client.name} · People`}
         title="The Team"
         subtitle="Every department lead, their load, their playbook progress — at a glance."
         actions={
           <button className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Add team member
+            <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Add team member</span><span className="sm:hidden">Add</span>
           </button>
         }
       />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {PEOPLE.map((p) => {
           const pct = Math.round((p.approved / p.sops) * 100);
           return (
@@ -60,14 +60,14 @@ function TeamPage() {
                   {p.initials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-display text-[18px] font-semibold leading-tight truncate">{p.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{p.role}</div>
+                  <div className="font-display text-[16px] md:text-[18px] font-semibold leading-tight truncate">{p.name}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{p.role}</div>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1.5 font-mono">
-                    <Mail className="h-3 w-3" />
+                    <Mail className="h-3 w-3 shrink-0" />
                     <span className="truncate">{p.emailUser}@{emailDomain(client.name)}</span>
                   </div>
                 </div>
-                <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${LOAD_CLS[p.load]}`}>
+                <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${LOAD_CLS[p.load]}`}>
                   {p.load}
                 </span>
               </div>
