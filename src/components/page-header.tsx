@@ -10,22 +10,22 @@ type Props = {
 
 export function PageHeader({ eyebrow, title, subtitle, actions, className }: Props) {
   return (
-    <div className={cn("flex items-end justify-between gap-6", className)}>
+    <div className={cn("flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6", className)}>
       <div className="min-w-0">
         {eyebrow && (
           <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
             <span className="h-px w-6 bg-primary/60" />
-            <span>{eyebrow}</span>
+            <span className="truncate">{eyebrow}</span>
           </div>
         )}
-        <h1 className="font-display text-[34px] font-semibold tracking-tight leading-tight">
+        <h1 className="font-display text-[24px] sm:text-[28px] md:text-[34px] font-semibold tracking-tight leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[14px] text-muted-foreground mt-2 max-w-2xl">{subtitle}</p>
+          <p className="text-[13px] md:text-[14px] text-muted-foreground mt-2 max-w-2xl">{subtitle}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>}
     </div>
   );
 }
