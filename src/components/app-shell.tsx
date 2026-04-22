@@ -15,14 +15,14 @@ type Props = {
 };
 
 const nav = [
-  { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/", label: "Overview", icon: LayoutDashboard, badge: undefined as string | undefined },
   { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: "72%" },
   { to: "/sops", label: "SOPs", icon: ClipboardList, badge: "4" },
-  { to: "/coaching", label: "Coaching Logs", icon: Target },
-  { to: "/team", label: "Team", icon: Users },
+  { to: "/coaching", label: "Coaching Logs", icon: Target, badge: undefined },
+  { to: "/team", label: "Team", icon: Users, badge: undefined },
   { to: "/insights", label: "AI Insights", icon: Sparkles, badge: "new" },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
+  { to: "/settings", label: "Settings", icon: Settings, badge: undefined },
+] as const;
 
 export function AppShell({ children, activeClient, onClientChange, onOpenCommand }: Props) {
   const loc = useLocation();
