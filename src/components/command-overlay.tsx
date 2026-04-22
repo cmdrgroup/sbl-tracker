@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Command } from "cmdk";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Search, FileText, Users, BookOpen, Sparkles, Plus, BarChart3,
   CheckCircle2, Calendar, Settings, ArrowRight, Zap, Target, Bell,
 } from "lucide-react";
 import { clients } from "@/lib/demo-data";
+import { useActiveClient } from "@/lib/client-context";
 
 type Props = {
   open: boolean;
@@ -13,6 +15,14 @@ type Props = {
 
 export function CommandOverlay({ open, onOpenChange }: Props) {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const { setClient } = useActiveClient();
+
+  const go = (to: string) => {
+    navigate({ to });
+    onOpenChange(false);
+    setQuery("");
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -66,7 +76,10 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
             {/* AI Suggestion */}
             {query.length > 0 && (
               <Command.Group heading="Ask Command AI" className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono px-2 py-1.5">
-                <Command.Item className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer data-[selected=true]:bg-primary/15 data-[selected=true]:border-primary/30 border border-transparent">
+                <Command.Item
+                  onSelect={() => go("/insights")}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer data-[selected=true]:bg-primary/15 data-[selected=true]:border-primary/30 border border-transparent"
+                >
                   <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
                     <Sparkles className="h-3.5 w-3.5 text-background" />
                   </div>
@@ -79,17 +92,22 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
               </Command.Group>
             )}
 
-            <Item icon={Plus} label="Log a Captain's Table session" hint="New coaching log" shortcut="L" />
-            <Item icon={CheckCircle2} label="Approve pending SOP" hint="4 awaiting review" shortcut="A" />
-            <Item icon={FileText} label="Submit Loom recording" hint="Add to playbook" shortcut="S" />
-            <Item icon={Target} label="Add action item" hint="To open list" />
-            <Item icon={Bell} label="Send weekly client update" hint="Auto-draft from this week" />
+            <Item icon={Plus} label="Log a Captain's Table session" hint="New coaching log" shortcut="L" onSelect={() => go("/coaching")} />
+            <Item icon={CheckCircle2} label="Approve pending SOP" hint="4 awaiting review" shortcut="A" onSelect={() => go("/sops")} />
+            <Item icon={FileText} label="Submit Loom recording" hint="Add to playbook" shortcut="S" onSelect={() => go("/playbooks")} />
+            <Item icon={Target} label="Add action item" hint="To open list" onSelect={() => go("/coaching")} />
+            <Item icon={Bell} label="Send weekly client update" hint="Auto-draft from this week" onSelect={() => go("/insights")} />
 
             <Command.Group heading="Switch client" className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono px-2 py-1.5 mt-2">
               {clients.slice(0, 4).map((c) => (
                 <Command.Item
                   key={c.id}
                   value={`client ${c.name}`}
+                  onSelect={() => {
+                    setClient(c);
+                    onOpenChange(false);
+                    setQuery("");
+                  }}
                   className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer data-[selected=true]:bg-primary/15 border border-transparent data-[selected=true]:border-primary/30"
                 >
                   <div
@@ -105,11 +123,13 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
             </Command.Group>
 
             <Command.Group heading="Navigate" className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono px-2 py-1.5 mt-2">
-              <Item icon={BarChart3} label="Overview" hint="Dashboard" />
-              <Item icon={BookOpen} label="Playbooks" />
-              <Item icon={Users} label="Team" />
-              <Item icon={Calendar} label="Coaching Logs" />
-              <Item icon={Settings} label="Settings" />
+              <Item icon={BarChart3} label="Overview" hint="Dashboard" onSelect={() => go("/")} />
+              <Item icon={BookOpen} label="Playbooks" onSelect={() => go("/playbooks")} />
+              <Item icon={Users} label="Team" onSelect={() => go("/team")} />
+              <Item icon={Calendar} label="Coaching Logs" onSelect={() => go("/coaching")} />
+              <Item icon={Sparkles} label="AI Insights" onSelect={() => go("/insights")} />
+              <Item icon={FileText} label="SOPs" onSelect={() => go("/sops")} />
+              <Item icon={Settings} label="Settings" onSelect={() => go("/settings")} />
             </Command.Group>
           </Command.List>
 
@@ -131,11 +151,12 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
 }
 
 function Item({
-  icon: Icon, label, hint, shortcut,
-}: { icon: any; label: string; hint?: string; shortcut?: string }) {
+  icon: Icon, label, hint, shortcut, onSelect,
+}: { icon: any; label: string; hint?: string; shortcut?: string; onSelect?: () => void }) {
   return (
     <Command.Item
       value={label}
+      onSelect={onSelect}
       className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer data-[selected=true]:bg-primary/15 border border-transparent data-[selected=true]:border-primary/30 group"
     >
       <div className="h-7 w-7 rounded-md bg-secondary/60 group-data-[selected=true]:bg-primary/20 flex items-center justify-center shrink-0">
