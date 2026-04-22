@@ -1,24 +1,80 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plug, Bell, Shield, CreditCard, Users, Command } from "lucide-react";
+import { useState } from "react";
+import { Plug, Bell, Shield, CreditCard, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
+import { useAuth } from "@/lib/auth-context";
+import { useIntegrations, useUpsertIntegration } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings — Command Overlay" }] }),
 });
 
-const INTEGRATIONS = [
-  { name: "Slack", desc: "Push alerts and AI briefs to channels", connected: true, color: "oklch(0.78 0.14 80)" },
-  { name: "Google Drive", desc: "Sync SOP documents", connected: true, color: "oklch(0.68 0.13 145)" },
-  { name: "Loom", desc: "Auto-attach recordings to SOPs", connected: true, color: "oklch(0.55 0.20 28)" },
-  { name: "Xero", desc: "Pull cashflow signals", connected: false, color: "oklch(0.70 0.10 220)" },
-  { name: "Notion", desc: "Mirror playbook chapters", connected: false, color: "oklch(0.65 0.012 75)" },
-  { name: "ClickUp", desc: "Sync action items", connected: false, color: "oklch(0.62 0.115 70)" },
+type ProviderKey = "loom" | "slack" | "google_drive" | "xero" | "notion" | "clickup";
+
+const PROVIDERS: {
+  key: ProviderKey;
+  name: string;
+  desc: string;
+  color: string;
+  configurable: boolean;
+}[] = [
+  { key: "loom", name: "Loom", desc: "Auto-import SOP recordings into your playbook", color: "oklch(0.55 0.20 28)", configurable: true },
+  { key: "slack", name: "Slack", desc: "Push AI briefs and alerts to channels", color: "oklch(0.78 0.14 80)", configurable: false },
+  { key: "google_drive", name: "Google Drive", desc: "Sync SOP documents", color: "oklch(0.68 0.13 145)", configurable: false },
+  { key: "xero", name: "Xero", desc: "Pull cashflow signals for AI insights", color: "oklch(0.70 0.10 220)", configurable: false },
+  { key: "notion", name: "Notion", desc: "Mirror playbook chapters", color: "oklch(0.65 0.012 75)", configurable: false },
+  { key: "clickup", name: "ClickUp", desc: "Sync action items", color: "oklch(0.62 0.115 70)", configurable: false },
 ];
 
 function SettingsPage() {
   const { client } = useRequiredClient();
+  const { profile } = useAuth();
+  const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
+  const upsertIntegration = useUpsertIntegration();
+
+  // Loom setup form state
+  const [showLoomSetup, setShowLoomSetup] = useState(false);
+  const [loomApiKey, setLoomApiKey] = useState("");
+  const [loomWorkspaceId, setLoomWorkspaceId] = useState("");
+
+  const loomIntegration = integrations.find((i) => i.provider === "loom");
+
+  const handleLoomConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await upsertIntegration.mutateAsync({
+      client_id: client.id,
+      provider: "loom",
+      api_key: loomApiKey || null,
+      workspace_id: loomWorkspaceId || null,
+      webhook_secret: null,
+      config: {},
+      connected: true,
+      connected_at: new Date().toISOString(),
+    });
+    setShowLoomSetup(false);
+    setLoomApiKey("");
+    setLoomWorkspaceId("");
+  };
+
+  const handleLoomDisconnect = async () => {
+    await upsertIntegration.mutateAsync({
+      client_id: client.id,
+      provider: "loom",
+      api_key: null,
+      workspace_id: null,
+      webhook_secret: null,
+      config: {},
+      connected: false,
+      connected_at: null,
+    });
+  };
+
+  const isConnected = (provider: ProviderKey) =>
+    integrations.some((i) => i.provider === provider && i.connected);
+
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1100px]">
       <PageHeader
@@ -55,38 +111,160 @@ function SettingsPage() {
         <div className="space-y-4">
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
-              <Field label="Workspace name" value={`${client.name} · Curtis Davies`} />
-              <Field label="Default timezone" value="Australia / Brisbane (AEST)" />
-              <Field label="Week starts on" value="Monday" />
-              <Field label="Captain's Table cadence" value="Tuesdays · 7:00am" />
+              <Field label="Workspace name" value={`${client.name} · ${profile?.full_name ?? "Commander"}`} />
+              <Field label="Default timezone" value={client.timezone ?? "Australia/Brisbane"} />
+              <Field label="Week starts on" value={client.week_start ?? "Monday"} />
+              <Field label="Coaching cadence" value={client.coaching_cadence ?? "Tuesdays · 7:00am"} />
+              <Field label="Industry" value={client.industry ?? "—"} />
+              <Field label="Client slug" value={client.slug} />
             </div>
           </Panel>
 
           <Panel title="Integrations" subtitle="Connect the systems your clients already use">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {INTEGRATIONS.map((i) => (
-                <div key={i.name} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 transition-colors">
-                  <div
-                    className="h-8 w-8 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0"
-                    style={{ background: i.color, color: "oklch(0.13 0.003 60)" }}
-                  >
-                    {i.name[0]}
+              {PROVIDERS.map((p) => {
+                const connected = isConnected(p.key);
+                return (
+                  <div key={p.key} className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border transition-colors",
+                    connected ? "border-success/30" : "border-border hover:border-primary/40",
+                  )}>
+                    <div
+                      className="h-8 w-8 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0"
+                      style={{ background: p.color, color: "oklch(0.13 0.003 60)" }}
+                    >
+                      {p.name[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium">{p.name}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">{p.desc}</div>
+                    </div>
+                    {connected ? (
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 shrink-0">
+                        Connected
+                      </span>
+                    ) : p.configurable ? (
+                      <button
+                        onClick={() => p.key === "loom" && setShowLoomSetup(true)}
+                        className="text-[11px] font-medium text-primary hover:underline shrink-0"
+                      >
+                        Connect
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-muted-foreground shrink-0">Coming soon</span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-medium">{i.name}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{i.desc}</div>
-                  </div>
-                  {i.connected ? (
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 shrink-0">
-                      Connected
-                    </span>
-                  ) : (
-                    <button className="text-[11px] font-medium text-primary hover:underline shrink-0">Connect</button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Panel>
+
+          {/* ─── Loom Setup Panel ─── */}
+          {(showLoomSetup || loomIntegration?.connected) && (
+            <Panel
+              title="Loom Integration"
+              subtitle={loomIntegration?.connected ? `Connected ${loomIntegration.connected_at ? new Date(loomIntegration.connected_at).toLocaleDateString("en-AU") : ""}` : "Setup"}
+            >
+              {loomIntegration?.connected ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-success/5 border border-success/20">
+                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-[13px] font-medium">Loom is connected</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        New Loom recordings will automatically create playbook entries in "Submitted" status.
+                        {loomIntegration.workspace_id && <span className="block mt-0.5 font-mono">Workspace: {loomIntegration.workspace_id}</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-surface/40 border border-border">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Webhook URL</div>
+                    <div className="text-[12px] font-mono bg-surface border border-border rounded px-3 py-2 break-all select-all">
+                      https://bsvreslnbuqkjgnufpis.supabase.co/functions/v1/loom-webhook
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-2">
+                      Add this URL in your Loom Developer Portal under Webhooks. Subscribe to "video.created" and "video.transcoded" events.
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="https://www.loom.com/developer-portal"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-md bg-secondary/60 border border-border text-[12px] flex items-center gap-1.5 hover:bg-secondary"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Open Loom Developer Portal
+                    </a>
+                    <button
+                      onClick={handleLoomDisconnect}
+                      disabled={upsertIntegration.isPending}
+                      className="px-3 py-1.5 rounded-md bg-destructive/10 text-destructive border border-destructive/30 text-[12px] hover:bg-destructive/20"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleLoomConnect} className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[13px]">Connect your Loom workspace to auto-import SOP recordings.</div>
+                    <button type="button" onClick={() => setShowLoomSetup(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-info/5 border border-info/20 text-[12px] text-muted-foreground">
+                    <strong className="text-foreground">How it works:</strong> When someone records a Loom in your workspace, Command Overlay automatically creates a playbook entry with the video URL, duration, and recorder's name. The entry starts in "Submitted" status for review.
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Loom API Key (optional)</label>
+                    <input
+                      value={loomApiKey}
+                      onChange={(e) => setLoomApiKey(e.target.value)}
+                      placeholder="loom_api_..."
+                      className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40 font-mono"
+                    />
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Get this from <a href="https://www.loom.com/developer-portal" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Loom Developer Portal</a>. Optional if using webhook-only mode.
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Loom Workspace ID (optional)</label>
+                    <input
+                      value={loomWorkspaceId}
+                      onChange={(e) => setLoomWorkspaceId(e.target.value)}
+                      placeholder="ws_..."
+                      className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40 font-mono"
+                    />
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Used to match incoming webhooks to this client. Find it in your Loom workspace settings.
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="submit"
+                      disabled={upsertIntegration.isPending}
+                      className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
+                    >
+                      {upsertIntegration.isPending ? "Connecting..." : "Connect Loom"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowLoomSetup(false)}
+                      className="px-4 py-2 rounded-md bg-secondary/60 border border-border text-[12px]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </Panel>
+          )}
 
           <Panel title="Danger zone" subtitle="Irreversible actions">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-destructive/30">

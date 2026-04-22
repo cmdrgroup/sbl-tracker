@@ -8,6 +8,8 @@ import type {
   CoachingDecision,
   ActionItem,
   ActivityFeedItem,
+  AiBrief,
+  ClientIntegration,
 } from "./types";
 
 // ─── CLIENTS ────────────────────────────────────────────────
@@ -258,6 +260,86 @@ export function useInsertActivity() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["activity_feed", data.client_id] });
+    },
+  });
+}
+
+// ─── AI BRIEFS ─────────────────────────────────────────────
+
+export function useAiBriefs(clientId: string) {
+  return useQuery<AiBrief[]>({
+    queryKey: ["ai_briefs", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_briefs")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+}
+
+export function useGenerateBrief() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      client_id,
+      brief_type = "weekly",
+    }: {
+      client_id: string;
+      brief_type?: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke("generate-brief", {
+        body: { client_id, brief_type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as { brief: string; id: string; signals_used: number; generated_at: string };
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["ai_briefs", vars.client_id] });
+    },
+  });
+}
+
+// ─── CLIENT INTEGRATIONS ───────────────────────────────────
+
+export function useIntegrations(clientId: string) {
+  return useQuery<ClientIntegration[]>({
+    queryKey: ["integrations", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_integrations")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("provider");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+}
+
+export function useUpsertIntegration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      integration: Omit<ClientIntegration, "id" | "created_at" | "updated_at">
+    ) => {
+      const { data, error } = await supabase
+        .from("client_integrations")
+        .upsert(integration, { onConflict: "client_id,provider" })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["integrations", data.client_id] });
     },
   });
 }

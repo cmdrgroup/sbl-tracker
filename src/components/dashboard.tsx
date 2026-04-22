@@ -1,5 +1,5 @@
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus } from "lucide-react";
-import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem } from "@/lib/hooks";
+import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X } from "lucide-react";
+import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
@@ -42,6 +42,22 @@ export function Dashboard({ client }: Props) {
       status: currentStatus === "done" ? "open" : "done",
       completed_at: currentStatus === "done" ? null : new Date().toISOString(),
     });
+  };
+
+  // AI Brief
+  const generateBrief = useGenerateBrief();
+  const [briefContent, setBriefContent] = useState<string | null>(null);
+  const [showBrief, setShowBrief] = useState(false);
+
+  const handleGenerateBrief = async () => {
+    setShowBrief(true);
+    setBriefContent(null);
+    try {
+      const result = await generateBrief.mutateAsync({ client_id: client.id, brief_type: "weekly" });
+      setBriefContent(result.brief);
+    } catch {
+      // error handled by mutation state
+    }
   };
 
   const handleAddAction = async (e: React.FormEvent) => {
@@ -104,11 +120,58 @@ export function Dashboard({ client }: Props) {
           <button className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary text-[12px] font-medium border border-border">
             This week
           </button>
-          <button className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[12px] font-medium flex items-center gap-1.5 shadow-[0_0_20px_oklch(0.62_0.22_280_/_0.3)]">
-            <Sparkles className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ask AI for brief</span><span className="sm:hidden">AI brief</span>
+          <button
+            onClick={handleGenerateBrief}
+            disabled={generateBrief.isPending}
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[12px] font-medium flex items-center gap-1.5 shadow-[0_0_20px_oklch(0.62_0.22_280_/_0.3)] disabled:opacity-60"
+          >
+            {generateBrief.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">{generateBrief.isPending ? "Generating..." : "Ask AI for brief"}</span>
+            <span className="sm:hidden">{generateBrief.isPending ? "..." : "AI brief"}</span>
           </button>
         </div>
       </div>
+
+      {/* AI Brief panel */}
+      {showBrief && (
+        <Panel accent>
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+                <Sparkles className="h-3.5 w-3.5 text-background" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">AI Executive Brief</div>
+                <div className="text-[10px] font-mono text-muted-foreground">
+                  {generateBrief.isPending ? "Generating..." : `Generated just now`}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setShowBrief(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          {generateBrief.isPending ? (
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-[13px] text-muted-foreground">Analysing playbooks, coaching logs, action items...</span>
+            </div>
+          ) : generateBrief.isError ? (
+            <div className="text-[13px] text-destructive">
+              {(generateBrief.error as Error).message}
+              <div className="text-[11px] text-muted-foreground mt-1">
+                Make sure the ANTHROPIC_API_KEY is set in your Supabase Edge Function secrets and the generate-brief function is deployed.
+              </div>
+            </div>
+          ) : briefContent ? (
+            <div className="text-[13px] leading-relaxed whitespace-pre-wrap">{briefContent}</div>
+          ) : null}
+        </Panel>
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -98,3 +98,27 @@ export type ActivityFeedItem = {
   message: string;
   created_at: string;
 };
+
+export type AiBrief = {
+  id: string;
+  client_id: string;
+  brief_type: "weekly" | "daily" | "coaching_prep" | "ad_hoc";
+  content: string;
+  signals_used: number;
+  generated_by: string;
+  created_at: string;
+};
+
+export type ClientIntegration = {
+  id: string;
+  client_id: string;
+  provider: "loom" | "slack" | "google_drive" | "xero" | "notion" | "clickup";
+  api_key: string | null;
+  webhook_secret: string | null;
+  workspace_id: string | null;
+  config: Record<string, unknown>;
+  connected: boolean;
+  connected_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
