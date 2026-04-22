@@ -60,7 +60,8 @@ function AuthGate() {
 
 // Inner app: loads clients from Supabase, provides context
 function AppWithClients() {
-  const { data: clientList = [], isLoading } = useClients();
+  const { data: clientList = [], isLoading, error } = useClients();
+  const { signOut } = useAuth();
   const [activeClient, setActiveClient] = useState<Client | null>(null);
   const [cmdOpen, setCmdOpen] = useState(false);
 
@@ -76,12 +77,46 @@ function AppWithClients() {
     }
   }, [clientList, activeClient]);
 
-  if (isLoading || !activeClient) {
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a] px-4">
+        <div className="max-w-md text-center">
+          <div className="text-lg font-semibold text-red-400 mb-2">Failed to load clients</div>
+          <p className="text-sm text-white/50 mb-4">{error.message}</p>
+          <button onClick={() => signOut()} className="text-sm text-white/40 hover:text-white/60 underline">
+            Sign out and try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
-        <div className="text-lg font-semibold text-white/60">
-          Loading client...
+        <div className="text-lg font-semibold text-white/60">Loading client...</div>
+      </div>
+    );
+  }
+
+  if (!activeClient && clientList.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a] px-4">
+        <div className="max-w-md text-center">
+          <div className="text-lg font-semibold text-white/80 mb-2">No clients found</div>
+          <p className="text-sm text-white/50 mb-4">Your account isn't linked to any clients yet. Contact your commander to get access.</p>
+          <button onClick={() => signOut()} className="text-sm text-white/40 hover:text-white/60 underline">
+            Sign out
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  if (!activeClient) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
+        <div className="text-lg font-semibold text-white/60">Loading client...</div>
       </div>
     );
   }
