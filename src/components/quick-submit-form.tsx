@@ -80,6 +80,12 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         loom_duration_min: duration ? Number(duration) : null,
         owner_name: selectedSop.owner_name ?? owner,
       });
+      const label = selectedSop.code
+        ? `${selectedSop.code} · ${selectedSop.title}`
+        : selectedSop.title;
+      toast.success("SOP updated", {
+        description: `Loom attached to ${label}.`,
+      });
     } else {
       // Brand-new SOP
       if (!title) return;
@@ -94,6 +100,9 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         loom_url: loomUrl,
         loom_duration_min: duration ? Number(duration) : null,
         notes: null,
+      });
+      toast.success("New SOP created", {
+        description: `"${title}" added to the pipeline.`,
       });
     }
 
