@@ -99,20 +99,21 @@ function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 md:gap-6">
         <nav className="flex md:block gap-1 md:space-y-0.5 overflow-x-auto scrollbar-thin -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
-          {[
-            { label: "Workspace", icon: Command, active: true },
-            { label: "Team", icon: Users },
-            { label: "Integrations", icon: Plug },
-            { label: "Notifications", icon: Bell },
-            { label: "Security", icon: Shield },
-            { label: "Billing", icon: CreditCard },
-          ].map((s) => {
+          {([
+            { key: "workspace" as const, label: "Workspace", icon: Command },
+            { key: "team" as const, label: "Team", icon: Users },
+            { key: "integrations" as const, label: "Integrations", icon: Plug },
+            { key: "notifications" as const, label: "Notifications", icon: Bell },
+            { key: "security" as const, label: "Security", icon: Shield },
+          ]).map((s) => {
             const Icon = s.icon;
+            const active = tab === s.key;
             return (
               <button
-                key={s.label}
+                key={s.key}
+                onClick={() => navigate({ search: { tab: s.key } })}
                 className={`shrink-0 md:w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-left whitespace-nowrap ${
-                  s.active ? "bg-primary/15 text-foreground border border-primary/30" : "text-muted-foreground hover:bg-secondary/40 border border-transparent"
+                  active ? "bg-primary/15 text-foreground border border-primary/30" : "text-muted-foreground hover:bg-secondary/40 border border-transparent"
                 }`}
               >
                 <Icon className="h-4 w-4" />
