@@ -43,7 +43,10 @@ const PROVIDERS: {
 function SettingsPage() {
   const { client } = useRequiredClient();
   const { profile } = useAuth();
+  const { tab } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
+  const { data: workstreams = [] } = useWorkstreams(client.id);
   const upsertIntegration = useUpsertIntegration();
 
   // Loom setup form state
