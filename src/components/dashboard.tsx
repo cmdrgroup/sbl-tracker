@@ -418,6 +418,23 @@ export function Dashboard({ client }: Props) {
           )}
         </Panel>
       </div>
+
+      {/* SBL Playbook Quick Submit */}
+      <Panel
+        title="Submit a Playbook"
+        subtitle="SBL Playbook playlist · pick your name, paste the Loom link"
+        accent
+        className="max-w-2xl"
+      >
+        <div className="flex items-start gap-3">
+          <div className="h-9 w-9 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 mt-1">
+            <Send className="h-4 w-4 text-background" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <QuickSubmitForm compact />
+          </div>
+        </div>
+      </Panel>
     </div>
   );
 }
