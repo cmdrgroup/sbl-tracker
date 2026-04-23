@@ -4,6 +4,7 @@ import { Search, Filter, Plus, Loader2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
+import { SopDetailDrawer } from "@/components/sop-detail-drawer";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
@@ -52,9 +53,11 @@ function SopsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
+  void updatePlaybook;
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [openSopId, setOpenSopId] = useState<string | null>(null);
 
   const activeDept = workstreams.find((w) => w.id === dept);
   const clearDept = () => navigate({ search: {} });
@@ -344,10 +347,12 @@ function SopsPage() {
                   </div>
                   <div className="space-y-2">
                     {items.map((s) => (
-                      <div
+                      <button
                         key={s.id}
+                        type="button"
+                        onClick={() => setOpenSopId(s.id)}
                         className={cn(
-                          "bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 cursor-grab",
+                          "w-full text-left bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-colors cursor-pointer",
                           STATUS_CLASS[s.status],
                         )}
                       >
@@ -357,7 +362,7 @@ function SopsPage() {
                           <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
                           {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -373,7 +378,12 @@ function SopsPage() {
                 <div>Code</div><div>Title</div><div>Department</div><div>Owner</div><div>Status</div><div className="text-right">Updated</div>
               </div>
               {filtered.map((s) => (
-                <div key={s.id} className="grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0">
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setOpenSopId(s.id)}
+                  className="w-full text-left grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0"
+                >
                   <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
                   <div className="truncate">{s.title}</div>
                   <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
@@ -391,12 +401,19 @@ function SopsPage() {
                     </span>
                   </div>
                   <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         </Panel>
       )}
+
+      <SopDetailDrawer
+        sop={playbooks.find((p) => p.id === openSopId) ?? null}
+        workstreams={workstreams}
+        open={!!openSopId}
+        onClose={() => setOpenSopId(null)}
+      />
     </div>
   );
 }

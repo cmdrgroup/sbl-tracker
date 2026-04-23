@@ -440,7 +440,7 @@ function Kpi({
 
 function Panel({
   title, subtitle, children, className, accent,
-}: { title: string; subtitle?: string; children: React.ReactNode; className?: string; accent?: boolean }) {
+}: { title?: string; subtitle?: string; children: React.ReactNode; className?: string; accent?: boolean }) {
   return (
     <div className={cn(
       "bg-card border border-border rounded-xl p-4",
