@@ -45,6 +45,10 @@ function CoachingPage() {
   const totalDecisions = logs.reduce((s, l) => s + (l.decisions?.length ?? 0), 0);
   const latestWeek = logs.length > 0 ? (logs[0].week_number ?? 0) : 0;
 
+  // Owner filter for action items
+  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
+  const QUICK_OWNERS = ["Brett Poole", "Curtis Tofa", "Ryan Christensen"];
+
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [fDate, setFDate] = useState(() => new Date().toISOString().split("T")[0]);
