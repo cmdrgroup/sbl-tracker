@@ -450,6 +450,20 @@ function SopsPage() {
         open={!!openSopId}
         onClose={() => setOpenSopId(null)}
       />
+
+      <Sheet open={quickSubmitOpen} onOpenChange={setQuickSubmitOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Quick Submit</SheetTitle>
+            <SheetDescription>
+              Pick your name, paste your Loom link. Lands in the pipeline as Submitted.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <QuickSubmitForm onSubmitted={() => setQuickSubmitOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
