@@ -92,8 +92,25 @@ function SopsPage() {
     setShowForm(false);
   };
 
+  // Filter state
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterOwner, setFilterOwner] = useState<string>("");
+
+  const owners = Array.from(new Set(playbooks.map((p) => p.owner_name).filter(Boolean))) as string[];
+  const types = ["sop", "framework", "script", "policy", "campaign", "playbook", "other"] as const;
+
+  const toggle = (arr: string[], setArr: (v: string[]) => void, val: string) => {
+    setArr(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
+  };
+  const clearFilters = () => { setFilterStatuses([]); setFilterTypes([]); setFilterOwner(""); };
+  const activeFilterCount = filterStatuses.length + filterTypes.length + (filterOwner ? 1 : 0);
+
   const filtered = playbooks.filter((s) => {
     if (dept && s.workstream_id !== dept) return false;
+    if (filterStatuses.length && !filterStatuses.includes(s.status)) return false;
+    if (filterTypes.length && !filterTypes.includes(s.type)) return false;
+    if (filterOwner && s.owner_name !== filterOwner) return false;
     const needle = q.toLowerCase();
     return (
       s.title.toLowerCase().includes(needle) ||
