@@ -347,10 +347,12 @@ function SopsPage() {
                   </div>
                   <div className="space-y-2">
                     {items.map((s) => (
-                      <div
+                      <button
                         key={s.id}
+                        type="button"
+                        onClick={() => setOpenSopId(s.id)}
                         className={cn(
-                          "bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 cursor-grab",
+                          "w-full text-left bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-colors cursor-pointer",
                           STATUS_CLASS[s.status],
                         )}
                       >
@@ -360,7 +362,7 @@ function SopsPage() {
                           <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
                           {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
