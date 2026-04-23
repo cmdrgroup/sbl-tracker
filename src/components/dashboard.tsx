@@ -424,7 +424,7 @@ export function Dashboard({ client }: Props) {
         {/* Activity feed */}
         <Panel title="Live Feed" subtitle="Across all systems">
           <div className="space-y-3">
-            {activityFeed.slice(0, 6).map((a) => (
+            {filteredActivityFeed.slice(0, 6).map((a) => (
               <div key={a.id} className="flex gap-2.5">
                 <div className="mt-0.5">
                   {a.type === "playbook" && <FileText className="h-3.5 w-3.5 text-info" />}
