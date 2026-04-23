@@ -61,6 +61,7 @@ function SopsPage() {
   const [openSopId, setOpenSopId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+  const [quickSubmitOpen, setQuickSubmitOpen] = useState(false);
 
   const handleDrop = async (newStatus: Playbook["status"]) => {
     const id = draggingId;
@@ -150,12 +151,20 @@ function SopsPage() {
         title="Standard Operating Procedures"
         subtitle="Track every SOP from filmed to approved. Drag, review, ship."
         actions={
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
-          >
-            <Plus className="h-3.5 w-3.5" /> New SOP
-          </button>
+          <>
+            <button
+              onClick={() => setQuickSubmitOpen(true)}
+              className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary border border-border text-[12px] font-medium flex items-center gap-1.5"
+            >
+              <Send className="h-3.5 w-3.5" /> Quick Submit
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
+            >
+              <Plus className="h-3.5 w-3.5" /> New SOP
+            </button>
+          </>
         }
       />
 
