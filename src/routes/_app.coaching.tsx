@@ -239,11 +239,71 @@ function CoachingPage() {
         </Panel>
       </div>
 
+      {/* Owner filter for action items */}
+      <Panel>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mr-1">
+            Filter actions by owner
+          </span>
+          <button
+            onClick={() => setOwnerFilter(null)}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-[11px] font-medium border",
+              ownerFilter === null
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            All
+          </button>
+          {QUICK_OWNERS.map((name) => (
+            <button
+              key={name}
+              onClick={() => setOwnerFilter(ownerFilter === name ? null : name)}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-[11px] font-medium border",
+                ownerFilter === name
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {name.split(" ")[0]}
+            </button>
+          ))}
+          <select
+            value={ownerFilter && !QUICK_OWNERS.includes(ownerFilter) ? ownerFilter : ""}
+            onChange={(e) => setOwnerFilter(e.target.value || null)}
+            className={cn(inputCls, "w-auto text-[11px] py-1 ml-1")}
+          >
+            <option value="">Other staff…</option>
+            {STAFF_MEMBERS.filter((s) => !QUICK_OWNERS.includes(s)).map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {ownerFilter && (
+            <span className="text-[11px] text-muted-foreground ml-1">
+              Showing items for <span className="text-foreground font-medium">{ownerFilter}</span>
+            </span>
+          )}
+        </div>
+      </Panel>
+
       <div className="space-y-3">
-        {logs.map((log) => {
+        {logs
+          .filter((log) => {
+            if (!ownerFilter) return true;
+            return actionItems.some(
+              (a) => a.coaching_log_id === log.id && a.owner_name === ownerFilter,
+            );
+          })
+          .map((log) => {
           const moodKey = log.mood ?? "steady";
           const moodInfo = MOOD[moodKey] ?? MOOD.steady;
-          const sessionActions = actionItems.filter((a) => a.coaching_log_id === log.id);
+          const sessionActions = actionItems.filter(
+            (a) =>
+              a.coaching_log_id === log.id &&
+              (!ownerFilter || a.owner_name === ownerFilter),
+          );
           return (
             <Panel key={log.id}>
               <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4 md:gap-6">
