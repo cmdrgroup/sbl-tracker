@@ -189,6 +189,18 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
           placeholder="https://loom.com/..."
           className={inputCls}
         />
+        <p className="text-[11px] text-muted-foreground mt-1">
+          💡 Tip: install the{" "}
+          <a
+            href="https://chromewebstore.google.com/detail/loom-screen-recorder-scre/liecbddmkiiihnedobmlmillhodjkdmb"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Loom Chrome extension
+          </a>{" "}
+          to record &amp; paste in one click — no tab switching.
+        </p>
       </div>
 
       {!compact && (
