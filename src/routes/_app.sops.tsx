@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, Filter, Plus, Loader2, X } from "lucide-react";
+import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
@@ -22,6 +23,7 @@ function timeAgo(dateStr: string): string {
 
 export const Route = createFileRoute("/_app/sops")({
   component: SopsPage,
+  validateSearch: z.object({ dept: z.string().optional() }),
   head: () => ({ meta: [{ title: "SOPs — Command Overlay" }] }),
 });
 
@@ -43,6 +45,8 @@ const STATUS_CLASS: Record<string, string> = {
 
 function SopsPage() {
   const { client } = useRequiredClient();
+  const navigate = useNavigate({ from: "/sops" });
+  const { dept } = Route.useSearch();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
@@ -50,6 +54,9 @@ function SopsPage() {
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
+
+  const activeDept = workstreams.find((w) => w.id === dept);
+  const clearDept = () => navigate({ search: {} });
 
   // New playbook form state
   const [formTitle, setFormTitle] = useState("");
@@ -84,12 +91,15 @@ function SopsPage() {
     setShowForm(false);
   };
 
-  const filtered = playbooks.filter(
-    (s) =>
-      s.title.toLowerCase().includes(q.toLowerCase()) ||
-      (s.code ?? "").toLowerCase().includes(q.toLowerCase()) ||
-      (s.owner_name ?? "").toLowerCase().includes(q.toLowerCase()),
-  );
+  const filtered = playbooks.filter((s) => {
+    if (dept && s.workstream_id !== dept) return false;
+    const needle = q.toLowerCase();
+    return (
+      s.title.toLowerCase().includes(needle) ||
+      (s.code ?? "").toLowerCase().includes(needle) ||
+      (s.owner_name ?? "").toLowerCase().includes(needle)
+    );
+  });
 
   if (isLoading) {
     return (
@@ -219,6 +229,16 @@ function SopsPage() {
           </div>
         </div>
       </div>
+
+      {activeDept && (
+        <div className="flex items-center gap-2 text-[12px]">
+          <span className="text-muted-foreground font-mono uppercase tracking-wider text-[10px]">Filtered by department:</span>
+          <button onClick={clearDept} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25">
+            {activeDept.name}
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
       {view === "kanban" ? (
         <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0 scrollbar-thin">
