@@ -51,6 +51,12 @@ function CoachingPage() {
 
   // Form state
   const [showForm, setShowForm] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
   const [fDate, setFDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [fWeek, setFWeek] = useState(() => String(latestWeek + 1));
   const [fMood, setFMood] = useState<string>("steady");
