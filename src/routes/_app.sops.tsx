@@ -91,12 +91,15 @@ function SopsPage() {
     setShowForm(false);
   };
 
-  const filtered = playbooks.filter(
-    (s) =>
-      s.title.toLowerCase().includes(q.toLowerCase()) ||
-      (s.code ?? "").toLowerCase().includes(q.toLowerCase()) ||
-      (s.owner_name ?? "").toLowerCase().includes(q.toLowerCase()),
-  );
+  const filtered = playbooks.filter((s) => {
+    if (dept && s.workstream_id !== dept) return false;
+    const needle = q.toLowerCase();
+    return (
+      s.title.toLowerCase().includes(needle) ||
+      (s.code ?? "").toLowerCase().includes(needle) ||
+      (s.owner_name ?? "").toLowerCase().includes(needle)
+    );
+  });
 
   if (isLoading) {
     return (
