@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
