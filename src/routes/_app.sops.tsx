@@ -407,6 +407,13 @@ function SopsPage() {
           </div>
         </Panel>
       )}
+
+      <SopDetailDrawer
+        sop={playbooks.find((p) => p.id === openSopId) ?? null}
+        workstreams={workstreams}
+        open={!!openSopId}
+        onClose={() => setOpenSopId(null)}
+      />
     </div>
   );
 }
