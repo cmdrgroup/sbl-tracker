@@ -1,14 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plug, Bell, Shield, CreditCard, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams } from "@/lib/hooks";
+import { STAFF_MEMBERS } from "@/lib/staff";
 import { cn } from "@/lib/utils";
+
+const TABS = ["workspace", "team", "integrations", "notifications", "security"] as const;
+type TabKey = (typeof TABS)[number];
+
+const settingsSearchSchema = z.object({
+  tab: fallback(z.enum(TABS), "workspace").default("workspace"),
+});
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
+  validateSearch: zodValidator(settingsSearchSchema),
   head: () => ({ meta: [{ title: "Settings — Command Overlay" }] }),
 });
 
