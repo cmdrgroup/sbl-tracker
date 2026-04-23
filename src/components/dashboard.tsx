@@ -482,7 +482,7 @@ export function Dashboard({ client }: Props) {
 
         <Panel title="Open Actions" subtitle={`${openActions} pending`}>
           <div className="space-y-1.5">
-            {actionItemsList.map((a) => (
+            {filteredActionItems.map((a) => (
               <div key={a.id} className={cn(
                 "flex items-start gap-2 p-2 rounded-md hover:bg-secondary/40",
                 a.status === "done" && "opacity-50",
