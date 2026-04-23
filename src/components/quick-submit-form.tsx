@@ -127,15 +127,47 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
       </div>
 
       <div>
-        <label className={labelCls}>SOP title *</label>
-        <input
+        <label className={labelCls}>SOP *</label>
+        <select
           required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Site mobilisation checklist"
+          value={selectedSopId}
+          onChange={(e) => setSelectedSopId(e.target.value)}
+          disabled={!owner}
           className={inputCls}
-        />
+        >
+          <option value="">
+            {owner ? "— Select an SOP —" : "Select your name first"}
+          </option>
+          {relevantSops.length > 0 && (
+            <optgroup label="Your SOPs">
+              {relevantSops.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.code ? `${p.code} · ${p.title}` : p.title}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <option value="__new__">+ New SOP (not in the list)</option>
+        </select>
+        {owner && relevantSops.length === 0 && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            No SOPs assigned yet — pick "New SOP" to add one.
+          </p>
+        )}
       </div>
+
+      {isNewSop && (
+        <div>
+          <label className={labelCls}>New SOP title *</label>
+          <input
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Site mobilisation checklist"
+            className={inputCls}
+          />
+        </div>
+      )}
 
       <div>
         <label className={labelCls}>Loom URL *</label>
