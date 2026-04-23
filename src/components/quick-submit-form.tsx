@@ -23,6 +23,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const createPlaybook = useCreatePlaybook();
 
   const [owner, setOwner] = useState("");
+  const [selectedSopId, setSelectedSopId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [loomUrl, setLoomUrl] = useState("");
   const [duration, setDuration] = useState("");
@@ -42,7 +43,23 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
     return ws?.id ?? null;
   }, [workstreams, owner]);
 
+  // SOPs relevant to this owner / their department
+  const relevantSops = useMemo(() => {
+    if (!owner) return [];
+    return playbooks
+      .filter(
+        (p) =>
+          p.owner_name === owner ||
+          (inferredWorkstreamId && p.workstream_id === inferredWorkstreamId),
+      )
+      .sort((a, b) => (a.code ?? a.title).localeCompare(b.code ?? b.title));
+  }, [playbooks, owner, inferredWorkstreamId]);
+
+  const isNewSop = selectedSopId === "__new__";
+  const selectedSop = playbooks.find((p) => p.id === selectedSopId) ?? null;
+
   const reset = () => {
+    setSelectedSopId("");
     setTitle("");
     setLoomUrl("");
     setDuration("");
