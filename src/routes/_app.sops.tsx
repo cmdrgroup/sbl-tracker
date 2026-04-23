@@ -25,7 +25,7 @@ function timeAgo(dateStr: string): string {
 
 export const Route = createFileRoute("/_app/sops")({
   component: SopsPage,
-  validateSearch: z.object({ dept: z.string().optional() }),
+  validateSearch: z.object({ dept: z.string().optional(), q: z.string().optional() }),
   head: () => ({ meta: [{ title: "SOPs — Command Overlay" }] }),
 });
 
