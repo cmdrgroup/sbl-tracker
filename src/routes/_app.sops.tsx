@@ -53,11 +53,22 @@ function SopsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
-  void updatePlaybook;
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [openSopId, setOpenSopId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+
+  const handleDrop = async (newStatus: Playbook["status"]) => {
+    const id = draggingId;
+    setDraggingId(null);
+    setDragOverCol(null);
+    if (!id) return;
+    const sop = playbooks.find((p) => p.id === id);
+    if (!sop || sop.status === newStatus) return;
+    await updatePlaybook.mutateAsync({ id, status: newStatus });
+  };
 
   const activeDept = workstreams.find((w) => w.id === dept);
   const clearDept = () => navigate({ search: {} });
@@ -339,8 +350,18 @@ function SopsPage() {
           <div className="grid grid-cols-5 gap-3 min-w-[900px]">
             {COLUMNS.map((col) => {
               const items = filtered.filter((s) => s.status === col.key);
+              const isOver = dragOverCol === col.key;
               return (
-                <div key={col.key} className="bg-surface/40 border border-border rounded-xl p-2.5 min-h-[400px]">
+                <div
+                  key={col.key}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverCol(col.key); }}
+                  onDragLeave={() => setDragOverCol((c) => (c === col.key ? null : c))}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(col.key as Playbook["status"]); }}
+                  className={cn(
+                    "bg-surface/40 border rounded-xl p-2.5 min-h-[400px] transition-colors",
+                    isOver ? "border-primary/60 bg-primary/5" : "border-border",
+                  )}
+                >
                   <div className="flex items-center justify-between px-1.5 py-1.5 mb-2">
                     <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{col.label}</span>
                     <span className="text-[10px] font-mono px-1.5 rounded bg-secondary text-muted-foreground">{items.length}</span>
@@ -350,10 +371,14 @@ function SopsPage() {
                       <button
                         key={s.id}
                         type="button"
+                        draggable
+                        onDragStart={(e) => { setDraggingId(s.id); e.dataTransfer.effectAllowed = "move"; }}
+                        onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
                         onClick={() => setOpenSopId(s.id)}
                         className={cn(
-                          "w-full text-left bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-colors cursor-pointer",
+                          "w-full text-left bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-all cursor-grab active:cursor-grabbing",
                           STATUS_CLASS[s.status],
+                          draggingId === s.id && "opacity-40",
                         )}
                       >
                         <div className="text-[10px] font-mono text-muted-foreground">{s.code ?? "—"}</div>

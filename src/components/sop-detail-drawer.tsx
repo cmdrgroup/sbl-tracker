@@ -157,6 +157,9 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
             <>
               <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
               <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <button onClick={() => transitionTo("not_started")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                  ← Back to Not Started
+                </button>
                 <button onClick={() => transitionTo("under_review")} disabled={updatePlaybook.isPending} className="flex-1 px-4 py-2 rounded-md bg-warning/20 border border-warning/40 text-warning text-[12px] font-medium">
                   Move to In Review →
                 </button>
@@ -174,16 +177,26 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
               </Field>
 
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                {sop.status === "under_review" && (
+                  <button onClick={() => transitionTo("submitted")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                    ← Back to Submitted
+                  </button>
+                )}
+                {sop.status === "refined" && (
+                  <button onClick={() => transitionTo("under_review")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                    ← Back to In Review
+                  </button>
+                )}
                 <button onClick={saveOnly} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
                   {saved ? "Saved ✓" : "Save notes"}
                 </button>
                 {sop.status === "under_review" && (
-                  <button onClick={() => transitionTo("refined")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-accent/20 border border-accent/40 text-accent text-[12px] font-medium">
+                  <button onClick={() => transitionTo("refined")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-accent/20 border border-accent/40 text-accent text-[12px] font-medium ml-auto">
                     Mark Refined →
                   </button>
                 )}
                 {sop.status === "refined" && (
-                  <button onClick={() => transitionTo("approved")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-success/20 border border-success/40 text-success text-[12px] font-medium">
+                  <button onClick={() => transitionTo("approved")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-success/20 border border-success/40 text-success text-[12px] font-medium ml-auto">
                     Approve →
                   </button>
                 )}
@@ -195,6 +208,11 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
           {isApproved && (
             <>
               <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
+              <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <button onClick={() => transitionTo("refined")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                  ← Back to Refined
+                </button>
+              </div>
               <div className="text-[11px] text-success bg-success/10 border border-success/30 rounded-md p-2.5 font-mono uppercase tracking-wider">
                 ✓ Approved — locked
               </div>
