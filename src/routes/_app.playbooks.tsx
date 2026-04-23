@@ -110,9 +110,13 @@ function PlaybooksPage() {
                   <span><span className="text-warning">●</span> {d.inReview} review</span>
                   <span>{d.notStarted} pending</span>
                 </div>
-                <button className="text-[11px] text-primary flex items-center gap-1 hover:underline">
+                <Link
+                  to="/sops"
+                  search={{ dept: d.id }}
+                  className="text-[11px] text-primary flex items-center gap-1 hover:underline"
+                >
                   Open <ArrowUpRight className="h-3 w-3" />
-                </button>
+                </Link>
               </div>
             </Panel>
           );
