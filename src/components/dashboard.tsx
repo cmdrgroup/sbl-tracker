@@ -513,8 +513,8 @@ export function Dashboard({ client }: Props) {
                 </div>
               </div>
             ))}
-            {actionItemsList.length === 0 && (
-              <div className="text-[12px] text-muted-foreground">No action items yet.</div>
+            {filteredActionItems.length === 0 && (
+              <div className="text-[12px] text-muted-foreground">No action items in this range.</div>
             )}
           </div>
 
