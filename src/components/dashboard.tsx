@@ -1,10 +1,66 @@
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X, Send } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X, Send, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
 import { QuickSubmitForm } from "@/components/quick-submit-form";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+
+type RangePreset = "today" | "week" | "month" | "quarter" | "year" | "all" | "custom";
+
+const PRESET_LABELS: Record<RangePreset, string> = {
+  today: "Today",
+  week: "This week",
+  month: "This month",
+  quarter: "This quarter",
+  year: "This year",
+  all: "All time",
+  custom: "Custom range",
+};
+
+function getRangeBounds(preset: RangePreset, custom?: DateRange): { from: Date | null; to: Date | null } {
+  const now = new Date();
+  if (preset === "all") return { from: null, to: null };
+  if (preset === "custom") return { from: custom?.from ?? null, to: custom?.to ?? null };
+  const to = new Date(now);
+  to.setHours(23, 59, 59, 999);
+  const from = new Date(now);
+  from.setHours(0, 0, 0, 0);
+  if (preset === "today") return { from, to };
+  if (preset === "week") {
+    const day = from.getDay(); // 0 = Sun
+    const diff = (day + 6) % 7; // make Mon start
+    from.setDate(from.getDate() - diff);
+    return { from, to };
+  }
+  if (preset === "month") {
+    from.setDate(1);
+    return { from, to };
+  }
+  if (preset === "quarter") {
+    const q = Math.floor(from.getMonth() / 3);
+    from.setMonth(q * 3, 1);
+    return { from, to };
+  }
+  if (preset === "year") {
+    from.setMonth(0, 1);
+    return { from, to };
+  }
+  return { from: null, to: null };
+}
+
+function inRange(dateStr: string | null | undefined, from: Date | null, to: Date | null): boolean {
+  if (!from && !to) return true;
+  if (!dateStr) return false;
+  const d = new Date(dateStr).getTime();
+  if (from && d < from.getTime()) return false;
+  if (to && d > to.getTime()) return false;
+  return true;
+}
 
 type Props = { client: Client };
 
