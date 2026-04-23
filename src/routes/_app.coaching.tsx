@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Plus, Calendar, Loader2, X, PlusCircle, Trash2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import {
@@ -51,6 +51,12 @@ function CoachingPage() {
 
   // Form state
   const [showForm, setShowForm] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
   const [fDate, setFDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [fWeek, setFWeek] = useState(() => String(latestWeek + 1));
   const [fMood, setFMood] = useState<string>("steady");
@@ -112,6 +118,7 @@ function CoachingPage() {
 
       {/* ─── New coaching session form ─── */}
       {showForm && (
+        <div ref={formRef}>
         <Panel>
           <form onSubmit={handleLogSubmit} className="space-y-4">
             <div className="flex items-center justify-between mb-1">
@@ -216,6 +223,7 @@ function CoachingPage() {
             </div>
           </form>
         </Panel>
+        </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

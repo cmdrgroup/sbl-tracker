@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Mail, Plus, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useWorkstreams, usePlaybooks } from "@/lib/hooks";
@@ -71,9 +71,13 @@ function TeamPage() {
         title="The Team"
         subtitle="Every department lead, their load, their playbook progress — at a glance."
         actions={
-          <button className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Add team member</span><span className="sm:hidden">Add</span>
-          </button>
+          <Link
+            to="/settings"
+            search={{ tab: "team" }}
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Manage team</span><span className="sm:hidden">Manage</span>
+          </Link>
         }
       />
 

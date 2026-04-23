@@ -1,14 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plug, Bell, Shield, CreditCard, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams } from "@/lib/hooks";
+import { STAFF_MEMBERS } from "@/lib/staff";
 import { cn } from "@/lib/utils";
+
+const TABS = ["workspace", "team", "integrations", "notifications", "security"] as const;
+type TabKey = (typeof TABS)[number];
+
+const settingsSearchSchema = z.object({
+  tab: fallback(z.enum(TABS), "workspace").default("workspace"),
+});
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
+  validateSearch: zodValidator(settingsSearchSchema),
   head: () => ({ meta: [{ title: "Settings — Command Overlay" }] }),
 });
 
@@ -32,7 +43,10 @@ const PROVIDERS: {
 function SettingsPage() {
   const { client } = useRequiredClient();
   const { profile } = useAuth();
+  const { tab } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
+  const { data: workstreams = [] } = useWorkstreams(client.id);
   const upsertIntegration = useUpsertIntegration();
 
   // Loom setup form state
@@ -85,20 +99,21 @@ function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 md:gap-6">
         <nav className="flex md:block gap-1 md:space-y-0.5 overflow-x-auto scrollbar-thin -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
-          {[
-            { label: "Workspace", icon: Command, active: true },
-            { label: "Team", icon: Users },
-            { label: "Integrations", icon: Plug },
-            { label: "Notifications", icon: Bell },
-            { label: "Security", icon: Shield },
-            { label: "Billing", icon: CreditCard },
-          ].map((s) => {
+          {([
+            { key: "workspace" as const, label: "Workspace", icon: Command },
+            { key: "team" as const, label: "Team", icon: Users },
+            { key: "integrations" as const, label: "Integrations", icon: Plug },
+            { key: "notifications" as const, label: "Notifications", icon: Bell },
+            { key: "security" as const, label: "Security", icon: Shield },
+          ]).map((s) => {
             const Icon = s.icon;
+            const active = tab === s.key;
             return (
               <button
-                key={s.label}
+                key={s.key}
+                onClick={() => navigate({ search: { tab: s.key } })}
                 className={`shrink-0 md:w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-left whitespace-nowrap ${
-                  s.active ? "bg-primary/15 text-foreground border border-primary/30" : "text-muted-foreground hover:bg-secondary/40 border border-transparent"
+                  active ? "bg-primary/15 text-foreground border border-primary/30" : "text-muted-foreground hover:bg-secondary/40 border border-transparent"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -109,6 +124,7 @@ function SettingsPage() {
         </nav>
 
         <div className="space-y-4">
+          {tab === "workspace" && (
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
               <Field label="Workspace name" value={`${client.name} · ${profile?.full_name ?? "Commander"}`} />
@@ -119,7 +135,47 @@ function SettingsPage() {
               <Field label="Client slug" value={client.slug} />
             </div>
           </Panel>
+          )}
 
+          {tab === "team" && (
+            <Panel title="Team & department leads" subtitle="Who runs what at SBL Solutions Services">
+              <div className="space-y-2">
+                {workstreams.map((w) => (
+                  <div key={w.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                    <div>
+                      <div className="text-[13px] font-medium">{w.name}</div>
+                      <div className="text-[11px] text-muted-foreground">Lead: {w.owner_name ?? "—"}</div>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Dept</span>
+                  </div>
+                ))}
+                <div className="p-3 rounded-lg border border-dashed border-border text-[11px] text-muted-foreground">
+                  Staff roster ({STAFF_MEMBERS.length}): {STAFF_MEMBERS.join(", ")}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  To change a department lead or add new staff, edit <code>src/lib/staff.ts</code> or run an UPDATE on the <code>workstreams</code> table.
+                </p>
+              </div>
+            </Panel>
+          )}
+
+          {tab === "notifications" && (
+            <Panel title="Notifications" subtitle="Where alerts get sent">
+              <p className="text-[12px] text-muted-foreground">
+                Notification routing is coming soon. Planned: weekly Captain's Table digest, SOP submission alerts to Slack, overdue action-item nudges by email.
+              </p>
+            </Panel>
+          )}
+
+          {tab === "security" && (
+            <Panel title="Security" subtitle="Access control & audit">
+              <p className="text-[12px] text-muted-foreground">
+                RLS policies are active on all tables. Sign-in is via magic link. Audit log and 2FA are on the roadmap.
+              </p>
+            </Panel>
+          )}
+
+          {tab === "integrations" && (
           <Panel title="Integrations" subtitle="Connect the systems your clients already use">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {PROVIDERS.map((p) => {
@@ -158,9 +214,10 @@ function SettingsPage() {
               })}
             </div>
           </Panel>
+          )}
 
           {/* ─── Loom Setup Panel ─── */}
-          {(showLoomSetup || loomIntegration?.connected) && (
+          {tab === "integrations" && (showLoomSetup || loomIntegration?.connected) && (
             <Panel
               title="Loom Integration"
               subtitle={loomIntegration?.connected ? `Connected ${loomIntegration.connected_at ? new Date(loomIntegration.connected_at).toLocaleDateString("en-AU") : ""}` : "Setup"}
@@ -266,6 +323,7 @@ function SettingsPage() {
             </Panel>
           )}
 
+          {tab === "workspace" && (
           <Panel title="Danger zone" subtitle="Irreversible actions">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-destructive/30">
               <div>
@@ -277,6 +335,7 @@ function SettingsPage() {
               </button>
             </div>
           </Panel>
+          )}
         </div>
       </div>
     </div>
