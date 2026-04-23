@@ -48,13 +48,13 @@ const STATUS_CLASS: Record<string, string> = {
 function SopsPage() {
   const { client } = useRequiredClient();
   const navigate = useNavigate({ from: "/sops" });
-  const { dept } = Route.useSearch();
+  const { dept, q: searchQ } = Route.useSearch();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
   const [view, setView] = useState<"kanban" | "table">("kanban");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchQ ?? "");
   const [showForm, setShowForm] = useState(false);
   const [openSopId, setOpenSopId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
