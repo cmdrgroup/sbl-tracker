@@ -118,6 +118,7 @@ function CoachingPage() {
 
       {/* ─── New coaching session form ─── */}
       {showForm && (
+        <div ref={formRef}>
         <Panel>
           <form onSubmit={handleLogSubmit} className="space-y-4">
             <div className="flex items-center justify-between mb-1">
