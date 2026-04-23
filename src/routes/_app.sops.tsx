@@ -45,6 +45,8 @@ const STATUS_CLASS: Record<string, string> = {
 
 function SopsPage() {
   const { client } = useRequiredClient();
+  const navigate = useNavigate({ from: "/sops" });
+  const { dept } = Route.useSearch();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
@@ -52,6 +54,9 @@ function SopsPage() {
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
+
+  const activeDept = workstreams.find((w) => w.id === dept);
+  const clearDept = () => navigate({ search: {} });
 
   // New playbook form state
   const [formTitle, setFormTitle] = useState("");
