@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, ArrowUpRight, Sparkles, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { usePlaybooks, useWorkstreams } from "@/lib/hooks";
