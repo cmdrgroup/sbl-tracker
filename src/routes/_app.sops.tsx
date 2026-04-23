@@ -4,6 +4,7 @@ import { Search, Filter, Plus, Loader2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
+import { SopDetailDrawer } from "@/components/sop-detail-drawer";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
