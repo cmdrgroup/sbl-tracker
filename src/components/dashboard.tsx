@@ -403,7 +403,7 @@ export function Dashboard({ client }: Props) {
                 <div>Status</div>
                 <div className="text-right">Updated</div>
               </div>
-              {playbooks.slice(0, 8).map((s) => (
+              {filteredPlaybooks.slice(0, 8).map((s) => (
                 <Link
                   key={s.id}
                   to="/sops"
