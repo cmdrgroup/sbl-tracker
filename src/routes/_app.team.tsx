@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Mail, Plus, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useWorkstreams, usePlaybooks } from "@/lib/hooks";
