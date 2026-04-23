@@ -271,13 +271,18 @@ export function Dashboard({ client }: Props) {
                 <div className="text-right">Updated</div>
               </div>
               {playbooks.slice(0, 8).map((s) => (
-                <div key={s.id} className="grid grid-cols-[80px_1fr_120px_100px_60px] gap-3 px-2 py-2 text-[12px] hover:bg-secondary/30 rounded-md items-center">
+                <Link
+                  key={s.id}
+                  to="/sops"
+                  search={s.code ? { q: s.code } : {}}
+                  className="grid grid-cols-[80px_1fr_120px_100px_60px] gap-3 px-2 py-2 text-[12px] hover:bg-secondary/30 rounded-md items-center"
+                >
                   <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
                   <div className="truncate">{s.title}</div>
                   <div className="text-muted-foreground truncate text-[11px]">{s.owner_name ?? "—"}</div>
                   <div><StatusPill status={s.status} /></div>
                   <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
