@@ -217,7 +217,7 @@ function SettingsPage() {
           )}
 
           {/* ─── Loom Setup Panel ─── */}
-          {(showLoomSetup || loomIntegration?.connected) && (
+          {tab === "integrations" && (showLoomSetup || loomIntegration?.connected) && (
             <Panel
               title="Loom Integration"
               subtitle={loomIntegration?.connected ? `Connected ${loomIntegration.connected_at ? new Date(loomIntegration.connected_at).toLocaleDateString("en-AU") : ""}` : "Setup"}
