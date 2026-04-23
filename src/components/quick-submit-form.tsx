@@ -21,6 +21,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const { data: playbooks = [] } = usePlaybooks(client.id);
   const createPlaybook = useCreatePlaybook();
+  const updatePlaybook = useUpdatePlaybook();
 
   const [owner, setOwner] = useState("");
   const [selectedSopId, setSelectedSopId] = useState<string>("");
