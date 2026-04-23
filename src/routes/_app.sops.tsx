@@ -230,6 +230,16 @@ function SopsPage() {
         </div>
       </div>
 
+      {activeDept && (
+        <div className="flex items-center gap-2 text-[12px]">
+          <span className="text-muted-foreground font-mono uppercase tracking-wider text-[10px]">Filtered by department:</span>
+          <button onClick={clearDept} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25">
+            {activeDept.name}
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
       {view === "kanban" ? (
         <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0 scrollbar-thin">
           <div className="grid grid-cols-5 gap-3 min-w-[900px]">
