@@ -228,9 +228,82 @@ function SopsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <button className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px] flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className={cn(
+                "px-3 py-2 rounded-md border text-[12px] flex items-center gap-1.5 transition-colors",
+                activeFilterCount > 0
+                  ? "bg-primary/15 border-primary/30 text-primary"
+                  : "bg-secondary/60 border-border hover:bg-secondary"
+              )}>
+                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+                {activeFilterCount > 0 && (
+                  <span className="ml-0.5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-mono leading-4">{activeFilterCount}</span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72 p-0 bg-card border-border">
+              <div className="p-3 border-b border-border flex items-center justify-between">
+                <span className="text-[12px] font-semibold">Filters</span>
+                {activeFilterCount > 0 && (
+                  <button onClick={clearFilters} className="text-[11px] text-muted-foreground hover:text-foreground">Clear all</button>
+                )}
+              </div>
+              <div className="p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Status</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {COLUMNS.map((c) => (
+                      <button
+                        key={c.key}
+                        onClick={() => toggle(filterStatuses, setFilterStatuses, c.key)}
+                        className={cn(
+                          "px-2 py-1 rounded text-[11px] border",
+                          filterStatuses.includes(c.key)
+                            ? "bg-primary/15 border-primary/30 text-primary"
+                            : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Type</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {types.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => toggle(filterTypes, setFilterTypes, t)}
+                        className={cn(
+                          "px-2 py-1 rounded text-[11px] border capitalize",
+                          filterTypes.includes(t)
+                            ? "bg-primary/15 border-primary/30 text-primary"
+                            : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {owners.length > 0 && (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Owner</div>
+                    <select
+                      value={filterOwner}
+                      onChange={(e) => setFilterOwner(e.target.value)}
+                      className="w-full bg-surface border border-border rounded-md px-2 py-1.5 text-[12px] outline-none focus:border-primary/40"
+                    >
+                      <option value="">All owners</option>
+                      {owners.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
           <div className="flex bg-secondary/60 rounded-md border border-border p-0.5 text-[12px] font-mono">
             {(["kanban", "table"] as const).map((v) => (
               <button
