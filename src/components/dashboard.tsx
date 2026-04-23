@@ -1,10 +1,66 @@
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X, Send } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X, Send, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
 import { QuickSubmitForm } from "@/components/quick-submit-form";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+
+type RangePreset = "today" | "week" | "month" | "quarter" | "year" | "all" | "custom";
+
+const PRESET_LABELS: Record<RangePreset, string> = {
+  today: "Today",
+  week: "This week",
+  month: "This month",
+  quarter: "This quarter",
+  year: "This year",
+  all: "All time",
+  custom: "Custom range",
+};
+
+function getRangeBounds(preset: RangePreset, custom?: DateRange): { from: Date | null; to: Date | null } {
+  const now = new Date();
+  if (preset === "all") return { from: null, to: null };
+  if (preset === "custom") return { from: custom?.from ?? null, to: custom?.to ?? null };
+  const to = new Date(now);
+  to.setHours(23, 59, 59, 999);
+  const from = new Date(now);
+  from.setHours(0, 0, 0, 0);
+  if (preset === "today") return { from, to };
+  if (preset === "week") {
+    const day = from.getDay(); // 0 = Sun
+    const diff = (day + 6) % 7; // make Mon start
+    from.setDate(from.getDate() - diff);
+    return { from, to };
+  }
+  if (preset === "month") {
+    from.setDate(1);
+    return { from, to };
+  }
+  if (preset === "quarter") {
+    const q = Math.floor(from.getMonth() / 3);
+    from.setMonth(q * 3, 1);
+    return { from, to };
+  }
+  if (preset === "year") {
+    from.setMonth(0, 1);
+    return { from, to };
+  }
+  return { from: null, to: null };
+}
+
+function inRange(dateStr: string | null | undefined, from: Date | null, to: Date | null): boolean {
+  if (!from && !to) return true;
+  if (!dateStr) return false;
+  const d = new Date(dateStr).getTime();
+  if (from && d < from.getTime()) return false;
+  if (to && d > to.getTime()) return false;
+  return true;
+}
 
 type Props = { client: Client };
 
@@ -78,23 +134,61 @@ export function Dashboard({ client }: Props) {
     setShowAddAction(false);
   };
 
+  // Date range filter
+  const [rangePreset, setRangePreset] = useState<RangePreset>("week");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [rangeOpen, setRangeOpen] = useState(false);
+  const { from: rangeFrom, to: rangeTo } = useMemo(
+    () => getRangeBounds(rangePreset, customRange),
+    [rangePreset, customRange],
+  );
+
+  const rangeLabel = useMemo(() => {
+    if (rangePreset === "custom" && customRange?.from) {
+      return customRange.to
+        ? `${format(customRange.from, "d MMM")} – ${format(customRange.to, "d MMM")}`
+        : format(customRange.from, "d MMM yyyy");
+    }
+    return PRESET_LABELS[rangePreset];
+  }, [rangePreset, customRange]);
+
+  const filteredPlaybooks = useMemo(
+    () => playbooks.filter((p) => inRange(p.updated_at, rangeFrom, rangeTo)),
+    [playbooks, rangeFrom, rangeTo],
+  );
+  const filteredCoachingLogs = useMemo(
+    () => coachingLogs.filter((l) => inRange(l.session_date, rangeFrom, rangeTo)),
+    [coachingLogs, rangeFrom, rangeTo],
+  );
+  const filteredActivityFeed = useMemo(
+    () => activityFeed.filter((a) => inRange(a.created_at, rangeFrom, rangeTo)),
+    [activityFeed, rangeFrom, rangeTo],
+  );
+  const filteredActionItems = useMemo(
+    () =>
+      rangeFrom === null && rangeTo === null
+        ? actionItemsList
+        : actionItemsList.filter((a) => inRange(a.due_date ?? a.completed_at, rangeFrom, rangeTo)),
+    [actionItemsList, rangeFrom, rangeTo],
+  );
+
   const wsStats = useMemo(() => {
     return workstreams.map((ws) => {
-      const items = playbooks.filter((p) => p.workstream_id === ws.id);
+      const items = filteredPlaybooks.filter((p) => p.workstream_id === ws.id);
       const total = items.length;
       const approved = items.filter((p) => p.status === "approved").length;
       const inReview = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
       const notStarted = items.filter((p) => p.status === "not_started").length;
       return { id: ws.id, name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
     });
-  }, [workstreams, playbooks]);
+  }, [workstreams, filteredPlaybooks]);
 
-  const totalPb = playbooks.length;
-  const approvedPb = playbooks.filter((p) => p.status === "approved").length;
+  const totalPb = filteredPlaybooks.length;
+  const approvedPb = filteredPlaybooks.filter((p) => p.status === "approved").length;
   const playbookPct = totalPb > 0 ? Math.round((approvedPb / totalPb) * 100) : 0;
-  const openCount = playbooks.filter((p) => p.status !== "approved" && p.status !== "not_started").length;
-  const latestLog = coachingLogs.length > 0 ? coachingLogs[0] : null;
-  const openActions = actionItemsList.filter((a) => a.status !== "done").length;
+  const openCount = filteredPlaybooks.filter((p) => p.status !== "approved" && p.status !== "not_started").length;
+  const latestLog = filteredCoachingLogs.length > 0 ? filteredCoachingLogs[0] : null;
+  const openActions = filteredActionItems.filter((a) => a.status !== "done").length;
 
   if (loadPb || loadWs) {
     return (
@@ -119,9 +213,47 @@ export function Dashboard({ client }: Props) {
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary text-[12px] font-medium border border-border">
-            This week
-          </button>
+          <Popover open={rangeOpen} onOpenChange={setRangeOpen}>
+            <PopoverTrigger asChild>
+              <button className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary text-[12px] font-medium border border-border flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span>{rangeLabel}</span>
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-auto p-0">
+              <div className="flex">
+                <div className="flex flex-col p-2 border-r border-border min-w-[140px]">
+                  {(["today", "week", "month", "quarter", "year", "all", "custom"] as RangePreset[]).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => {
+                        setRangePreset(p);
+                        if (p !== "custom") setRangeOpen(false);
+                      }}
+                      className={cn(
+                        "text-left px-2 py-1.5 rounded text-[12px] hover:bg-secondary/60",
+                        rangePreset === p && "bg-secondary text-foreground font-medium",
+                      )}
+                    >
+                      {PRESET_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+                {rangePreset === "custom" && (
+                  <div className="p-2">
+                    <Calendar
+                      mode="range"
+                      selected={customRange}
+                      onSelect={setCustomRange}
+                      numberOfMonths={2}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
           <button
             onClick={handleGenerateBrief}
             disabled={generateBrief.isPending}
@@ -271,7 +403,7 @@ export function Dashboard({ client }: Props) {
                 <div>Status</div>
                 <div className="text-right">Updated</div>
               </div>
-              {playbooks.slice(0, 8).map((s) => (
+              {filteredPlaybooks.slice(0, 8).map((s) => (
                 <Link
                   key={s.id}
                   to="/sops"
@@ -292,7 +424,7 @@ export function Dashboard({ client }: Props) {
         {/* Activity feed */}
         <Panel title="Live Feed" subtitle="Across all systems">
           <div className="space-y-3">
-            {activityFeed.slice(0, 6).map((a) => (
+            {filteredActivityFeed.slice(0, 6).map((a) => (
               <div key={a.id} className="flex gap-2.5">
                 <div className="mt-0.5">
                   {a.type === "playbook" && <FileText className="h-3.5 w-3.5 text-info" />}
@@ -310,8 +442,8 @@ export function Dashboard({ client }: Props) {
                 </div>
               </div>
             ))}
-            {activityFeed.length === 0 && (
-              <div className="text-[12px] text-muted-foreground">No activity yet.</div>
+            {filteredActivityFeed.length === 0 && (
+              <div className="text-[12px] text-muted-foreground">No activity in this range.</div>
             )}
           </div>
         </Panel>
@@ -350,7 +482,7 @@ export function Dashboard({ client }: Props) {
 
         <Panel title="Open Actions" subtitle={`${openActions} pending`}>
           <div className="space-y-1.5">
-            {actionItemsList.map((a) => (
+            {filteredActionItems.map((a) => (
               <div key={a.id} className={cn(
                 "flex items-start gap-2 p-2 rounded-md hover:bg-secondary/40",
                 a.status === "done" && "opacity-50",
@@ -381,8 +513,8 @@ export function Dashboard({ client }: Props) {
                 </div>
               </div>
             ))}
-            {actionItemsList.length === 0 && (
-              <div className="text-[12px] text-muted-foreground">No action items yet.</div>
+            {filteredActionItems.length === 0 && (
+              <div className="text-[12px] text-muted-foreground">No action items in this range.</div>
             )}
           </div>
 
