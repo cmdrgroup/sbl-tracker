@@ -53,9 +53,11 @@ function SopsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
+  void updatePlaybook;
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [openSopId, setOpenSopId] = useState<string | null>(null);
 
   const activeDept = workstreams.find((w) => w.id === dept);
   const clearDept = () => navigate({ search: {} });
