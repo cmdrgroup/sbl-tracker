@@ -361,12 +361,21 @@ export function Dashboard({ client }: Props) {
                   className="mt-0.5 accent-primary cursor-pointer"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={cn("text-[12px]", a.status === "done" && "line-through")}>{a.title}</div>
-                  <div className="flex items-center gap-2 text-[10px] font-mono mt-0.5">
+                  {a.coaching_log_id ? (
+                    <Link to="/coaching" className={cn("text-[12px] hover:underline block", a.status === "done" && "line-through")}>
+                      {a.title}
+                    </Link>
+                  ) : (
+                    <div className={cn("text-[12px]", a.status === "done" && "line-through")}>{a.title}</div>
+                  )}
+                  <div className="flex items-center gap-2 text-[10px] font-mono mt-0.5 flex-wrap">
                     <span className="text-muted-foreground">{a.owner_name ?? "—"}</span>
                     <span className={cn(
                       a.status === "overdue" ? "text-destructive" : "text-muted-foreground",
                     )}>· {a.due_date ? formatShortDate(a.due_date) : "—"}</span>
+                    {a.coaching_log_id && (
+                      <span className="px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 uppercase tracking-wider text-[9px]">Captain's Table</span>
+                    )}
                   </div>
                 </div>
               </div>
