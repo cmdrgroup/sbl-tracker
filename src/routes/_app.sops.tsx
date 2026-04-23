@@ -378,7 +378,12 @@ function SopsPage() {
                 <div>Code</div><div>Title</div><div>Department</div><div>Owner</div><div>Status</div><div className="text-right">Updated</div>
               </div>
               {filtered.map((s) => (
-                <div key={s.id} className="grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0">
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setOpenSopId(s.id)}
+                  className="w-full text-left grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0"
+                >
                   <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
                   <div className="truncate">{s.title}</div>
                   <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
@@ -396,7 +401,7 @@ function SopsPage() {
                     </span>
                   </div>
                   <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
