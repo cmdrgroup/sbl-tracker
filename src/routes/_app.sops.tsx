@@ -53,11 +53,22 @@ function SopsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
-  void updatePlaybook;
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [openSopId, setOpenSopId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+
+  const handleDrop = async (newStatus: Playbook["status"]) => {
+    const id = draggingId;
+    setDraggingId(null);
+    setDragOverCol(null);
+    if (!id) return;
+    const sop = playbooks.find((p) => p.id === id);
+    if (!sop || sop.status === newStatus) return;
+    await updatePlaybook.mutateAsync({ id, status: newStatus });
+  };
 
   const activeDept = workstreams.find((w) => w.id === dept);
   const clearDept = () => navigate({ search: {} });
