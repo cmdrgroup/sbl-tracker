@@ -134,23 +134,61 @@ export function Dashboard({ client }: Props) {
     setShowAddAction(false);
   };
 
+  // Date range filter
+  const [rangePreset, setRangePreset] = useState<RangePreset>("week");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [rangeOpen, setRangeOpen] = useState(false);
+  const { from: rangeFrom, to: rangeTo } = useMemo(
+    () => getRangeBounds(rangePreset, customRange),
+    [rangePreset, customRange],
+  );
+
+  const rangeLabel = useMemo(() => {
+    if (rangePreset === "custom" && customRange?.from) {
+      return customRange.to
+        ? `${format(customRange.from, "d MMM")} – ${format(customRange.to, "d MMM")}`
+        : format(customRange.from, "d MMM yyyy");
+    }
+    return PRESET_LABELS[rangePreset];
+  }, [rangePreset, customRange]);
+
+  const filteredPlaybooks = useMemo(
+    () => playbooks.filter((p) => inRange(p.updated_at, rangeFrom, rangeTo)),
+    [playbooks, rangeFrom, rangeTo],
+  );
+  const filteredCoachingLogs = useMemo(
+    () => coachingLogs.filter((l) => inRange(l.session_date, rangeFrom, rangeTo)),
+    [coachingLogs, rangeFrom, rangeTo],
+  );
+  const filteredActivityFeed = useMemo(
+    () => activityFeed.filter((a) => inRange(a.created_at, rangeFrom, rangeTo)),
+    [activityFeed, rangeFrom, rangeTo],
+  );
+  const filteredActionItems = useMemo(
+    () =>
+      rangeFrom === null && rangeTo === null
+        ? actionItemsList
+        : actionItemsList.filter((a) => inRange(a.due_date ?? a.completed_at, rangeFrom, rangeTo)),
+    [actionItemsList, rangeFrom, rangeTo],
+  );
+
   const wsStats = useMemo(() => {
     return workstreams.map((ws) => {
-      const items = playbooks.filter((p) => p.workstream_id === ws.id);
+      const items = filteredPlaybooks.filter((p) => p.workstream_id === ws.id);
       const total = items.length;
       const approved = items.filter((p) => p.status === "approved").length;
       const inReview = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
       const notStarted = items.filter((p) => p.status === "not_started").length;
       return { id: ws.id, name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
     });
-  }, [workstreams, playbooks]);
+  }, [workstreams, filteredPlaybooks]);
 
-  const totalPb = playbooks.length;
-  const approvedPb = playbooks.filter((p) => p.status === "approved").length;
+  const totalPb = filteredPlaybooks.length;
+  const approvedPb = filteredPlaybooks.filter((p) => p.status === "approved").length;
   const playbookPct = totalPb > 0 ? Math.round((approvedPb / totalPb) * 100) : 0;
-  const openCount = playbooks.filter((p) => p.status !== "approved" && p.status !== "not_started").length;
-  const latestLog = coachingLogs.length > 0 ? coachingLogs[0] : null;
-  const openActions = actionItemsList.filter((a) => a.status !== "done").length;
+  const openCount = filteredPlaybooks.filter((p) => p.status !== "approved" && p.status !== "not_started").length;
+  const latestLog = filteredCoachingLogs.length > 0 ? filteredCoachingLogs[0] : null;
+  const openActions = filteredActionItems.filter((a) => a.status !== "done").length;
 
   if (loadPb || loadWs) {
     return (
