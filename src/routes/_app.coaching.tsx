@@ -2,8 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CheckCircle2, Plus, Calendar, Loader2, X, PlusCircle, Trash2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { useCoachingLogs, useCreateCoachingLog } from "@/lib/hooks";
+import {
+  useCoachingLogs,
+  useCreateCoachingLog,
+  useActionItems,
+  useCreateActionItem,
+  useUpdateActionItem,
+} from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
+import { STAFF_MEMBERS } from "@/lib/staff";
 import { cn } from "@/lib/utils";
 
 function formatDate(dateStr: string): string {
@@ -24,9 +31,15 @@ const MOOD: Record<string, { label: string; cls: string }> = {
   under_pressure: { label: "Under Pressure", cls: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
+const inputCls =
+  "w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40";
+const labelCls =
+  "text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block";
+
 function CoachingPage() {
   const { client } = useRequiredClient();
   const { data: logs = [], isLoading } = useCoachingLogs(client.id);
+  const { data: actionItems = [] } = useActionItems(client.id);
   const createLog = useCreateCoachingLog();
 
   const totalDecisions = logs.reduce((s, l) => s + (l.decisions?.length ?? 0), 0);
@@ -37,6 +50,8 @@ function CoachingPage() {
   const [fDate, setFDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [fWeek, setFWeek] = useState(() => String(latestWeek + 1));
   const [fMood, setFMood] = useState<string>("steady");
+  const [fBrett, setFBrett] = useState("");
+  const [fCurtis, setFCurtis] = useState("");
   const [fSummary, setFSummary] = useState("");
   const [fDecisions, setFDecisions] = useState<string[]>([""]);
 
@@ -44,6 +59,8 @@ function CoachingPage() {
     setFDate(new Date().toISOString().split("T")[0]);
     setFWeek(String(latestWeek + 1));
     setFMood("steady");
+    setFBrett("");
+    setFCurtis("");
     setFSummary("");
     setFDecisions([""]);
   };
@@ -57,6 +74,8 @@ function CoachingPage() {
       week_number: Number(fWeek) || null,
       mood: fMood as "strong" | "steady" | "flat" | "under_pressure" | null,
       summary: fSummary || null,
+      brett_sitrep: fBrett || null,
+      curtis_sitrep: fCurtis || null,
       decisions,
     });
     resetForm();
@@ -100,16 +119,16 @@ function CoachingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Date *</label>
-                <input required type="date" value={fDate} onChange={(e) => setFDate(e.target.value)} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+                <label className={labelCls}>Date *</label>
+                <input required type="date" value={fDate} onChange={(e) => setFDate(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Week #</label>
-                <input type="number" value={fWeek} onChange={(e) => setFWeek(e.target.value)} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40" />
+                <label className={labelCls}>Week #</label>
+                <input type="number" value={fWeek} onChange={(e) => setFWeek(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Mood</label>
-                <select value={fMood} onChange={(e) => setFMood(e.target.value)} className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40">
+                <label className={labelCls}>Mood</label>
+                <select value={fMood} onChange={(e) => setFMood(e.target.value)} className={inputCls}>
                   <option value="strong">Strong</option>
                   <option value="steady">Steady</option>
                   <option value="flat">Flat</option>
@@ -118,13 +137,42 @@ function CoachingPage() {
               </div>
             </div>
 
-            <div>
-              <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Summary</label>
-              <textarea value={fSummary} onChange={(e) => setFSummary(e.target.value)} rows={3} placeholder="What happened this session? Key takeaways, observations, momentum..." className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40 resize-y" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Brett's Sit-Rep</label>
+                <textarea
+                  value={fBrett}
+                  onChange={(e) => setFBrett(e.target.value)}
+                  rows={4}
+                  placeholder="What's on Brett's mind — business, personal, strategic..."
+                  className={cn(inputCls, "resize-y")}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Curtis's Sit-Rep</label>
+                <textarea
+                  value={fCurtis}
+                  onChange={(e) => setFCurtis(e.target.value)}
+                  rows={4}
+                  placeholder="Playbook progress, blockers, what moved this week..."
+                  className={cn(inputCls, "resize-y")}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Decisions Locked</label>
+              <label className={labelCls}>Discussion Notes</label>
+              <textarea
+                value={fSummary}
+                onChange={(e) => setFSummary(e.target.value)}
+                rows={3}
+                placeholder="Other discussion points, context, follow-ups..."
+                className={cn(inputCls, "resize-y")}
+              />
+            </div>
+
+            <div>
+              <label className={labelCls}>Key Decisions Made</label>
               <div className="space-y-2">
                 {fDecisions.map((d, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -136,7 +184,7 @@ function CoachingPage() {
                         setFDecisions(next);
                       }}
                       placeholder={`Decision ${i + 1}`}
-                      className="flex-1 bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40"
+                      className={cn(inputCls, "flex-1")}
                     />
                     {fDecisions.length > 1 && (
                       <button type="button" onClick={() => setFDecisions(fDecisions.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
@@ -153,7 +201,7 @@ function CoachingPage() {
 
             <div className="flex items-center gap-2 pt-1">
               <button type="submit" disabled={createLog.isPending || !fDate} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50">
-                {createLog.isPending ? "Saving..." : "Log Session"}
+                {createLog.isPending ? "Saving..." : "Save Session"}
               </button>
               <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="px-4 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
                 Cancel
@@ -191,6 +239,7 @@ function CoachingPage() {
         {logs.map((log) => {
           const moodKey = log.mood ?? "steady";
           const moodInfo = MOOD[moodKey] ?? MOOD.steady;
+          const sessionActions = actionItems.filter((a) => a.coaching_log_id === log.id);
           return (
             <Panel key={log.id}>
               <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4 md:gap-6">
@@ -206,10 +255,24 @@ function CoachingPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Summary</div>
-                    <p className="text-[13px] md:text-[14px] leading-relaxed">{log.summary ?? "No summary recorded."}</p>
-                  </div>
+                  {log.brett_sitrep && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Brett's Sit-Rep</div>
+                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.brett_sitrep}</p>
+                    </div>
+                  )}
+                  {log.curtis_sitrep && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Curtis's Sit-Rep</div>
+                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.curtis_sitrep}</p>
+                    </div>
+                  )}
+                  {log.summary && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Discussion Notes</div>
+                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.summary}</p>
+                    </div>
+                  )}
                   {(log.decisions?.length ?? 0) > 0 && (
                     <div>
                       <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">Decisions Locked</div>
@@ -223,12 +286,104 @@ function CoachingPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Action items for this session */}
+                  <SessionActions logId={log.id} clientId={client.id} actions={sessionActions} />
                 </div>
               </div>
             </Panel>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function SessionActions({
+  logId,
+  clientId,
+  actions,
+}: {
+  logId: string;
+  clientId: string;
+  actions: ReturnType<typeof useActionItems>["data"] extends (infer T)[] | undefined ? T[] : never;
+}) {
+  const createAction = useCreateActionItem();
+  const updateAction = useUpdateActionItem();
+  const [title, setTitle] = useState("");
+  const [owner, setOwner] = useState(STAFF_MEMBERS[0]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    await createAction.mutateAsync({
+      client_id: clientId,
+      coaching_log_id: logId,
+      title: title.trim(),
+      owner_name: owner,
+      due_date: null,
+      status: "open",
+    });
+    setTitle("");
+  };
+
+  const toggle = (id: string, currentStatus: string) => {
+    updateAction.mutate({
+      id,
+      status: currentStatus === "done" ? "open" : "done",
+      completed_at: currentStatus === "done" ? null : new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="border-t border-border pt-3">
+      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">
+        Action Items {actions.length > 0 && <span className="text-foreground">· {actions.length}</span>}
+      </div>
+
+      {actions.length > 0 && (
+        <div className="space-y-1 mb-3">
+          {actions.map((a) => (
+            <div key={a.id} className="flex items-center gap-2 text-[12px]">
+              <input
+                type="checkbox"
+                checked={a.status === "done"}
+                onChange={() => toggle(a.id, a.status)}
+                className="accent-primary cursor-pointer"
+              />
+              <span className={cn("flex-1", a.status === "done" && "line-through text-muted-foreground")}>
+                {a.title}
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground shrink-0">{a.owner_name ?? "—"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Add action item..."
+          className={cn(inputCls, "flex-1 text-[12px] py-1.5")}
+        />
+        <select
+          value={owner}
+          onChange={(e) => setOwner(e.target.value)}
+          className={cn(inputCls, "sm:w-44 text-[12px] py-1.5")}
+        >
+          {STAFF_MEMBERS.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={!title.trim() || createAction.isPending}
+          className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[11px] font-medium disabled:opacity-50"
+        >
+          {createAction.isPending ? "..." : "Add"}
+        </button>
+      </form>
     </div>
   );
 }
