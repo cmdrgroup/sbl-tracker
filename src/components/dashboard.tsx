@@ -84,7 +84,7 @@ export function Dashboard({ client }: Props) {
       const approved = items.filter((p) => p.status === "approved").length;
       const inReview = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
       const notStarted = items.filter((p) => p.status === "not_started").length;
-      return { name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
+      return { id: ws.id, name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
     });
   }, [workstreams, playbooks]);
 
