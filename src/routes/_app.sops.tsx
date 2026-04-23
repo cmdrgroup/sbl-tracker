@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Filter, Plus, Loader2, X } from "lucide-react";
+import { Search, Filter, Plus, Loader2, X, Send } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
 import { SopDetailDrawer } from "@/components/sop-detail-drawer";
+import { QuickSubmitForm } from "@/components/quick-submit-form";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
