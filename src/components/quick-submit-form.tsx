@@ -68,19 +68,34 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!owner || !title || !loomUrl) return;
-    await createPlaybook.mutateAsync({
-      client_id: client.id,
-      title,
-      code: null,
-      owner_name: owner,
-      workstream_id: inferredWorkstreamId,
-      type: "sop",
-      status: "submitted",
-      loom_url: loomUrl,
-      loom_duration_min: duration ? Number(duration) : null,
-      notes: null,
-    });
+    if (!owner || !loomUrl) return;
+
+    if (selectedSop && !isNewSop) {
+      // Attach Loom to an existing SOP
+      await updatePlaybook.mutateAsync({
+        id: selectedSop.id,
+        status: "submitted",
+        loom_url: loomUrl,
+        loom_duration_min: duration ? Number(duration) : null,
+        owner_name: selectedSop.owner_name ?? owner,
+      });
+    } else {
+      // Brand-new SOP
+      if (!title) return;
+      await createPlaybook.mutateAsync({
+        client_id: client.id,
+        title,
+        code: null,
+        owner_name: owner,
+        workstream_id: inferredWorkstreamId,
+        type: "sop",
+        status: "submitted",
+        loom_url: loomUrl,
+        loom_duration_min: duration ? Number(duration) : null,
+        notes: null,
+      });
+    }
+
     reset();
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2500);
