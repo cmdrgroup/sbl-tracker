@@ -157,6 +157,9 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
             <>
               <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
               <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <button onClick={() => transitionTo("not_started")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
+                  ← Back to Not Started
+                </button>
                 <button onClick={() => transitionTo("under_review")} disabled={updatePlaybook.isPending} className="flex-1 px-4 py-2 rounded-md bg-warning/20 border border-warning/40 text-warning text-[12px] font-medium">
                   Move to In Review →
                 </button>
