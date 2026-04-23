@@ -293,7 +293,7 @@ export function useGenerateBrief() {
       client_id: string;
       brief_type?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke("quick-handler", {
+      const { data, error } = await supabase.functions.invoke("generate-brief", {
         body: { client_id, brief_type },
       });
       if (error) throw error;
