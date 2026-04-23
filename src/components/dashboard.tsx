@@ -442,8 +442,8 @@ export function Dashboard({ client }: Props) {
                 </div>
               </div>
             ))}
-            {activityFeed.length === 0 && (
-              <div className="text-[12px] text-muted-foreground">No activity yet.</div>
+            {filteredActivityFeed.length === 0 && (
+              <div className="text-[12px] text-muted-foreground">No activity in this range.</div>
             )}
           </div>
         </Panel>
