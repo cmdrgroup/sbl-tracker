@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpen, ArrowUpRight, Sparkles, Loader2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { usePlaybooks, useWorkstreams } from "@/lib/hooks";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_app/playbooks")({
 });
 
 function PlaybooksPage() {
+  const navigate = useNavigate();
   const { client } = useRequiredClient();
   const { data: playbooks = [], isLoading: loadingPb } = usePlaybooks(client.id);
   const { data: workstreams = [], isLoading: loadingWs } = useWorkstreams(client.id);
@@ -110,7 +111,10 @@ function PlaybooksPage() {
                   <span><span className="text-warning">●</span> {d.inReview} review</span>
                   <span>{d.notStarted} pending</span>
                 </div>
-                <button className="text-[11px] text-primary flex items-center gap-1 hover:underline">
+                <button
+                  onClick={() => navigate({ to: "/sops", search: { dept: d.id } })}
+                  className="text-[11px] text-primary flex items-center gap-1 hover:underline"
+                >
                   Open <ArrowUpRight className="h-3 w-3" />
                 </button>
               </div>

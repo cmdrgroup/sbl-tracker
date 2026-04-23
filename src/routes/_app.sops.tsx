@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, Filter, Plus, Loader2, X } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
@@ -23,6 +23,9 @@ function timeAgo(dateStr: string): string {
 export const Route = createFileRoute("/_app/sops")({
   component: SopsPage,
   head: () => ({ meta: [{ title: "SOPs — Command Overlay" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    dept: (search.dept as string) || undefined,
+  }),
 });
 
 const COLUMNS = [
@@ -43,13 +46,45 @@ const STATUS_CLASS: Record<string, string> = {
 
 function SopsPage() {
   const { client } = useRequiredClient();
+  const { dept } = Route.useSearch();
+  const navigate = useNavigate();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [q, setQ] = useState("");
+  const deptWorkstream = dept ? workstreams.find((ws) => ws.id === dept) : undefined;
   const [showForm, setShowForm] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+
+  // Drag-and-drop handlers
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+    setDraggingId(id);
+  };
+  const handleDragOver = (e: React.DragEvent, colKey: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverCol(colKey);
+  };
+  const handleDragLeave = () => setDragOverCol(null);
+  const handleDrop = (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain");
+    setDraggingId(null);
+    setDragOverCol(null);
+    if (!id) return;
+    const item = playbooks.find((p) => p.id === id);
+    if (!item || item.status === newStatus) return;
+    updatePlaybook.mutate({ id, status: newStatus as Playbook["status"] });
+  };
+  const handleDragEnd = () => { setDraggingId(null); setDragOverCol(null); };
+
+  // Inline status edit state (for table view)
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
 
   // New playbook form state
   const [formTitle, setFormTitle] = useState("");
@@ -86,9 +121,10 @@ function SopsPage() {
 
   const filtered = playbooks.filter(
     (s) =>
-      s.title.toLowerCase().includes(q.toLowerCase()) ||
+      (!dept || s.workstream_id === dept) &&
+      (s.title.toLowerCase().includes(q.toLowerCase()) ||
       (s.code ?? "").toLowerCase().includes(q.toLowerCase()) ||
-      (s.owner_name ?? "").toLowerCase().includes(q.toLowerCase()),
+      (s.owner_name ?? "").toLowerCase().includes(q.toLowerCase())),
   );
 
   if (isLoading) {
@@ -199,6 +235,14 @@ function SopsPage() {
             className="w-full bg-surface border border-border rounded-md pl-9 pr-3 py-2 text-[13px] placeholder:text-muted-foreground outline-none focus:border-primary/40"
           />
         </div>
+        {deptWorkstream && (
+          <button
+            onClick={() => navigate({ to: "/sops", search: {} })}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/30 text-[11px] font-medium text-primary shrink-0"
+          >
+            {deptWorkstream.name} <X className="h-3 w-3" />
+          </button>
+        )}
         <div className="flex items-center gap-2">
           <button className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px] flex items-center gap-1.5">
             <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
@@ -226,7 +270,16 @@ function SopsPage() {
             {COLUMNS.map((col) => {
               const items = filtered.filter((s) => s.status === col.key);
               return (
-                <div key={col.key} className="bg-surface/40 border border-border rounded-xl p-2.5 min-h-[400px]">
+                <div
+                  key={col.key}
+                  className={cn(
+                    "bg-surface/40 border border-border rounded-xl p-2.5 min-h-[400px] transition-colors",
+                    dragOverCol === col.key && "border-primary/60 bg-primary/5",
+                  )}
+                  onDragOver={(e) => handleDragOver(e, col.key)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, col.key)}
+                >
                   <div className="flex items-center justify-between px-1.5 py-1.5 mb-2">
                     <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{col.label}</span>
                     <span className="text-[10px] font-mono px-1.5 rounded bg-secondary text-muted-foreground">{items.length}</span>
@@ -235,9 +288,13 @@ function SopsPage() {
                     {items.map((s) => (
                       <div
                         key={s.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, s.id)}
+                        onDragEnd={handleDragEnd}
                         className={cn(
-                          "bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 cursor-grab",
+                          "bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 cursor-grab active:cursor-grabbing transition-opacity",
                           STATUS_CLASS[s.status],
+                          draggingId === s.id && "opacity-40",
                         )}
                       >
                         <div className="text-[10px] font-mono text-muted-foreground">{s.code ?? "—"}</div>
@@ -267,17 +324,37 @@ function SopsPage() {
                   <div className="truncate">{s.title}</div>
                   <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
                   <div className="text-muted-foreground text-[11px]">{s.owner_name ?? "—"}</div>
-                  <div>
-                    <span className={cn(
-                      "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider",
-                      s.status === "approved" && "bg-success/15 text-success border-success/30",
-                      s.status === "under_review" && "bg-warning/15 text-warning border-warning/30",
-                      s.status === "submitted" && "bg-info/15 text-info border-info/30",
-                      s.status === "refined" && "bg-accent/15 text-accent border-accent/30",
-                      s.status === "not_started" && "bg-secondary text-muted-foreground border-border",
-                    )}>
-                      {s.status.replace("_", " ")}
-                    </span>
+                  <div className="relative">
+                    {editingStatusId === s.id ? (
+                      <select
+                        autoFocus
+                        value={s.status}
+                        onChange={(e) => {
+                          updatePlaybook.mutate({ id: s.id, status: e.target.value as Playbook["status"] });
+                          setEditingStatusId(null);
+                        }}
+                        onBlur={() => setEditingStatusId(null)}
+                        className="bg-surface border border-primary/40 rounded px-1 py-0.5 text-[10px] font-mono uppercase tracking-wider outline-none"
+                      >
+                        {COLUMNS.map((c) => (
+                          <option key={c.key} value={c.key}>{c.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setEditingStatusId(s.id)}
+                        className={cn(
+                          "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider cursor-pointer hover:ring-1 hover:ring-primary/40",
+                          s.status === "approved" && "bg-success/15 text-success border-success/30",
+                          s.status === "under_review" && "bg-warning/15 text-warning border-warning/30",
+                          s.status === "submitted" && "bg-info/15 text-info border-info/30",
+                          s.status === "refined" && "bg-accent/15 text-accent border-accent/30",
+                          s.status === "not_started" && "bg-secondary text-muted-foreground border-border",
+                        )}
+                      >
+                        {s.status.replace("_", " ")}
+                      </button>
+                    )}
                   </div>
                   <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
                 </div>
