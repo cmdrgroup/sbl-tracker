@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Plus, Calendar, Loader2, X, PlusCircle, Trash2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import {
