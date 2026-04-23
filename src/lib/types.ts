@@ -66,6 +66,8 @@ export type CoachingLog = {
   session_date: string;
   mood: "strong" | "steady" | "flat" | "under_pressure" | null;
   summary: string | null;
+  brett_sitrep: string | null;
+  curtis_sitrep: string | null;
   created_at: string;
   // Joined fields
   decisions?: CoachingDecision[];
