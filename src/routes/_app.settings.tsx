@@ -214,6 +214,7 @@ function SettingsPage() {
               })}
             </div>
           </Panel>
+          )}
 
           {/* ─── Loom Setup Panel ─── */}
           {(showLoomSetup || loomIntegration?.connected) && (
