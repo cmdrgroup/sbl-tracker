@@ -323,6 +323,7 @@ function SettingsPage() {
             </Panel>
           )}
 
+          {tab === "workspace" && (
           <Panel title="Danger zone" subtitle="Irreversible actions">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-destructive/30">
               <div>
