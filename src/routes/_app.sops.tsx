@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Filter, Plus, Loader2, X } from "lucide-react";
+import { Search, Filter, Plus, Loader2, X, Send } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
 import { SopDetailDrawer } from "@/components/sop-detail-drawer";
+import { QuickSubmitForm } from "@/components/quick-submit-form";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
@@ -59,6 +61,7 @@ function SopsPage() {
   const [openSopId, setOpenSopId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+  const [quickSubmitOpen, setQuickSubmitOpen] = useState(false);
 
   const handleDrop = async (newStatus: Playbook["status"]) => {
     const id = draggingId;
@@ -148,12 +151,20 @@ function SopsPage() {
         title="Standard Operating Procedures"
         subtitle="Track every SOP from filmed to approved. Drag, review, ship."
         actions={
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
-          >
-            <Plus className="h-3.5 w-3.5" /> New SOP
-          </button>
+          <>
+            <button
+              onClick={() => setQuickSubmitOpen(true)}
+              className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary border border-border text-[12px] font-medium flex items-center gap-1.5"
+            >
+              <Send className="h-3.5 w-3.5" /> Quick Submit
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5"
+            >
+              <Plus className="h-3.5 w-3.5" /> New SOP
+            </button>
+          </>
         }
       />
 
@@ -439,6 +450,20 @@ function SopsPage() {
         open={!!openSopId}
         onClose={() => setOpenSopId(null)}
       />
+
+      <Sheet open={quickSubmitOpen} onOpenChange={setQuickSubmitOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Quick Submit</SheetTitle>
+            <SheetDescription>
+              Pick your name, paste your Loom link. Lands in the pipeline as Submitted.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <QuickSubmitForm onSubmitted={() => setQuickSubmitOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

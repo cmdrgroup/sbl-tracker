@@ -2,7 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ClipboardList, Users, Settings, Sparkles,
-  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X, LogOut,
+  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X, LogOut, Send,
 } from "lucide-react";
 import type { Client } from "@/lib/types";
 import { useActiveClient } from "@/lib/client-context";
@@ -20,6 +20,7 @@ const nav = [
   { to: "/", label: "Overview", icon: LayoutDashboard, badge: undefined as string | undefined },
   { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: "72%" },
   { to: "/sops", label: "SOPs", icon: ClipboardList, badge: "4" },
+  { to: "/submit", label: "Submit", icon: Send, badge: undefined },
   { to: "/coaching", label: "Coaching Logs", icon: Target, badge: undefined },
   { to: "/team", label: "Team", icon: Users, badge: undefined },
   { to: "/insights", label: "AI Insights", icon: Sparkles, badge: "new" },

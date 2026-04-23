@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
+import { Route as AppSubmitRouteImport } from './routes/_app.submit'
 import { Route as AppSopsRouteImport } from './routes/_app.sops'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppPlaybooksRouteImport } from './routes/_app.playbooks'
@@ -30,6 +31,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppTeamRoute = AppTeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubmitRoute = AppSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSopsRoute = AppSopsRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/playbooks': typeof AppPlaybooksRoute
   '/settings': typeof AppSettingsRoute
   '/sops': typeof AppSopsRoute
+  '/submit': typeof AppSubmitRoute
   '/team': typeof AppTeamRoute
 }
 export interface FileRoutesByTo {
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/playbooks': typeof AppPlaybooksRoute
   '/settings': typeof AppSettingsRoute
   '/sops': typeof AppSopsRoute
+  '/submit': typeof AppSubmitRoute
   '/team': typeof AppTeamRoute
   '/': typeof AppIndexRoute
 }
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/_app/playbooks': typeof AppPlaybooksRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/sops': typeof AppSopsRoute
+  '/_app/submit': typeof AppSubmitRoute
   '/_app/team': typeof AppTeamRoute
   '/_app/': typeof AppIndexRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/playbooks'
     | '/settings'
     | '/sops'
+    | '/submit'
     | '/team'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/playbooks'
     | '/settings'
     | '/sops'
+    | '/submit'
     | '/team'
     | '/'
   id:
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/_app/playbooks'
     | '/_app/settings'
     | '/_app/sops'
+    | '/_app/submit'
     | '/_app/team'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/submit': {
+      id: '/_app/submit'
+      path: '/submit'
+      fullPath: '/submit'
+      preLoaderRoute: typeof AppSubmitRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/sops': {
@@ -189,6 +208,7 @@ interface AppRouteChildren {
   AppPlaybooksRoute: typeof AppPlaybooksRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSopsRoute: typeof AppSopsRoute
+  AppSubmitRoute: typeof AppSubmitRoute
   AppTeamRoute: typeof AppTeamRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -199,6 +219,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlaybooksRoute: AppPlaybooksRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSopsRoute: AppSopsRoute,
+  AppSubmitRoute: AppSubmitRoute,
   AppTeamRoute: AppTeamRoute,
   AppIndexRoute: AppIndexRoute,
 }
