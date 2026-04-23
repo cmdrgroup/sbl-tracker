@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, Filter, Plus, Loader2, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { z } from "zod";
 import { PageHeader, Panel } from "@/components/page-header";
 import { usePlaybooks, useWorkstreams, useCreatePlaybook, useUpdatePlaybook } from "@/lib/hooks";
