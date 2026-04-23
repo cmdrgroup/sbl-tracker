@@ -335,6 +335,7 @@ function SettingsPage() {
               </button>
             </div>
           </Panel>
+          )}
         </div>
       </div>
     </div>
