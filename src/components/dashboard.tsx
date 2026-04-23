@@ -190,7 +190,12 @@ export function Dashboard({ client }: Props) {
             {wsStats.map((d) => {
               const pct = d.total > 0 ? Math.round((d.approved / d.total) * 100) : 0;
               return (
-                <div key={d.name} className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3">
+                <Link
+                  key={d.name}
+                  to="/sops"
+                  search={{ dept: d.id }}
+                  className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3 rounded-md px-1 -mx-1 py-1 hover:bg-secondary/40 transition-colors"
+                >
                   <div className="min-w-0">
                     <div className="text-[12px] sm:text-[13px] font-medium truncate">{d.name}</div>
                     <div className="text-[10px] text-muted-foreground truncate">{d.owner}</div>
@@ -212,7 +217,7 @@ export function Dashboard({ client }: Props) {
                   <div className="text-right">
                     <div className="text-[14px] sm:text-[15px] font-semibold tabular-nums">{pct}<span className="text-[11px] text-muted-foreground">%</span></div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
