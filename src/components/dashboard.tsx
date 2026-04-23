@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ function formatShortDate(dateStr: string): string {
 }
 
 export function Dashboard({ client }: Props) {
+  const navigate = useNavigate();
   const { data: playbooks = [], isLoading: loadPb } = usePlaybooks(client.id);
   const { data: workstreams = [], isLoading: loadWs } = useWorkstreams(client.id);
   const { data: coachingLogs = [] } = useCoachingLogs(client.id);
@@ -83,7 +85,7 @@ export function Dashboard({ client }: Props) {
       const approved = items.filter((p) => p.status === "approved").length;
       const inReview = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
       const notStarted = items.filter((p) => p.status === "not_started").length;
-      return { name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
+      return { id: ws.id, name: ws.name, owner: ws.owner_name ?? "—", total, approved, inReview, notStarted };
     });
   }, [workstreams, playbooks]);
 
@@ -189,7 +191,11 @@ export function Dashboard({ client }: Props) {
             {wsStats.map((d) => {
               const pct = d.total > 0 ? Math.round((d.approved / d.total) * 100) : 0;
               return (
-                <div key={d.name} className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3">
+                <div
+                  key={d.name}
+                  onClick={() => navigate({ to: "/sops", search: { dept: d.id } })}
+                  className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3 cursor-pointer rounded-md -mx-2 px-2 py-1 hover:bg-secondary/40 transition-colors"
+                >
                   <div className="min-w-0">
                     <div className="text-[12px] sm:text-[13px] font-medium truncate">{d.name}</div>
                     <div className="text-[10px] text-muted-foreground truncate">{d.owner}</div>
@@ -267,7 +273,10 @@ export function Dashboard({ client }: Props) {
               {playbooks.slice(0, 8).map((s) => (
                 <div key={s.id} className="grid grid-cols-[80px_1fr_120px_100px_60px] gap-3 px-2 py-2 text-[12px] hover:bg-secondary/30 rounded-md items-center">
                   <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
-                  <div className="truncate">{s.title}</div>
+                  <div
+                    className="truncate cursor-pointer hover:text-primary hover:underline"
+                    onClick={() => navigate({ to: "/sops", search: { q: s.code ?? s.title } })}
+                  >{s.title}</div>
                   <div className="text-muted-foreground truncate text-[11px]">{s.owner_name ?? "—"}</div>
                   <div><StatusPill status={s.status} /></div>
                   <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
@@ -350,12 +359,24 @@ export function Dashboard({ client }: Props) {
                   className="mt-0.5 accent-primary cursor-pointer"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={cn("text-[12px]", a.status === "done" && "line-through")}>{a.title}</div>
+                  <div
+                    className={cn(
+                      "text-[12px]",
+                      a.status === "done" && "line-through",
+                      a.coaching_log_id && "cursor-pointer hover:text-primary hover:underline",
+                    )}
+                    onClick={() => {
+                      if (a.coaching_log_id) navigate({ to: "/coaching" });
+                    }}
+                  >{a.title}</div>
                   <div className="flex items-center gap-2 text-[10px] font-mono mt-0.5">
                     <span className="text-muted-foreground">{a.owner_name ?? "—"}</span>
                     <span className={cn(
                       a.status === "overdue" ? "text-destructive" : "text-muted-foreground",
                     )}>· {a.due_date ? formatShortDate(a.due_date) : "—"}</span>
+                    {a.coaching_log_id && (
+                      <span className="text-primary/60">· Captain's Table</span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_app/sops")({
   head: () => ({ meta: [{ title: "SOPs — Command Overlay" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     dept: (search.dept as string) || undefined,
+    q: (search.q as string) || undefined,
   }),
 });
 
@@ -46,14 +47,14 @@ const STATUS_CLASS: Record<string, string> = {
 
 function SopsPage() {
   const { client } = useRequiredClient();
-  const { dept } = Route.useSearch();
+  const { dept, q: searchQ } = Route.useSearch();
   const navigate = useNavigate();
   const { data: playbooks = [], isLoading } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const createPlaybook = useCreatePlaybook();
   const updatePlaybook = useUpdatePlaybook();
   const [view, setView] = useState<"kanban" | "table">("kanban");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchQ ?? "");
   const deptWorkstream = dept ? workstreams.find((ws) => ws.id === dept) : undefined;
   const [showForm, setShowForm] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
