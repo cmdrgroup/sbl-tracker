@@ -213,9 +213,47 @@ export function Dashboard({ client }: Props) {
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary text-[12px] font-medium border border-border">
-            This week
-          </button>
+          <Popover open={rangeOpen} onOpenChange={setRangeOpen}>
+            <PopoverTrigger asChild>
+              <button className="px-3 py-1.5 rounded-md bg-secondary/60 hover:bg-secondary text-[12px] font-medium border border-border flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span>{rangeLabel}</span>
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-auto p-0">
+              <div className="flex">
+                <div className="flex flex-col p-2 border-r border-border min-w-[140px]">
+                  {(["today", "week", "month", "quarter", "year", "all", "custom"] as RangePreset[]).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => {
+                        setRangePreset(p);
+                        if (p !== "custom") setRangeOpen(false);
+                      }}
+                      className={cn(
+                        "text-left px-2 py-1.5 rounded text-[12px] hover:bg-secondary/60",
+                        rangePreset === p && "bg-secondary text-foreground font-medium",
+                      )}
+                    >
+                      {PRESET_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+                {rangePreset === "custom" && (
+                  <div className="p-2">
+                    <Calendar
+                      mode="range"
+                      selected={customRange}
+                      onSelect={setCustomRange}
+                      numberOfMonths={2}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
           <button
             onClick={handleGenerateBrief}
             disabled={generateBrief.isPending}
