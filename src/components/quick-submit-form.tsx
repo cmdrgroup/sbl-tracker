@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Loader2, Check } from "lucide-react";
-import { useCreatePlaybook, useWorkstreams, usePlaybooks } from "@/lib/hooks";
+import { useCreatePlaybook, useUpdatePlaybook, useWorkstreams, usePlaybooks } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 
 type Props = {
@@ -21,8 +21,10 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const { data: playbooks = [] } = usePlaybooks(client.id);
   const createPlaybook = useCreatePlaybook();
+  const updatePlaybook = useUpdatePlaybook();
 
   const [owner, setOwner] = useState("");
+  const [selectedSopId, setSelectedSopId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [loomUrl, setLoomUrl] = useState("");
   const [duration, setDuration] = useState("");
@@ -42,7 +44,23 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
     return ws?.id ?? null;
   }, [workstreams, owner]);
 
+  // SOPs relevant to this owner / their department
+  const relevantSops = useMemo(() => {
+    if (!owner) return [];
+    return playbooks
+      .filter(
+        (p) =>
+          p.owner_name === owner ||
+          (inferredWorkstreamId && p.workstream_id === inferredWorkstreamId),
+      )
+      .sort((a, b) => (a.code ?? a.title).localeCompare(b.code ?? b.title));
+  }, [playbooks, owner, inferredWorkstreamId]);
+
+  const isNewSop = selectedSopId === "__new__";
+  const selectedSop = playbooks.find((p) => p.id === selectedSopId) ?? null;
+
   const reset = () => {
+    setSelectedSopId("");
     setTitle("");
     setLoomUrl("");
     setDuration("");
@@ -50,19 +68,34 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!owner || !title || !loomUrl) return;
-    await createPlaybook.mutateAsync({
-      client_id: client.id,
-      title,
-      code: null,
-      owner_name: owner,
-      workstream_id: inferredWorkstreamId,
-      type: "sop",
-      status: "submitted",
-      loom_url: loomUrl,
-      loom_duration_min: duration ? Number(duration) : null,
-      notes: null,
-    });
+    if (!owner || !loomUrl) return;
+
+    if (selectedSop && !isNewSop) {
+      // Attach Loom to an existing SOP
+      await updatePlaybook.mutateAsync({
+        id: selectedSop.id,
+        status: "submitted",
+        loom_url: loomUrl,
+        loom_duration_min: duration ? Number(duration) : null,
+        owner_name: selectedSop.owner_name ?? owner,
+      });
+    } else {
+      // Brand-new SOP
+      if (!title) return;
+      await createPlaybook.mutateAsync({
+        client_id: client.id,
+        title,
+        code: null,
+        owner_name: owner,
+        workstream_id: inferredWorkstreamId,
+        type: "sop",
+        status: "submitted",
+        loom_url: loomUrl,
+        loom_duration_min: duration ? Number(duration) : null,
+        notes: null,
+      });
+    }
+
     reset();
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2500);
@@ -94,15 +127,47 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
       </div>
 
       <div>
-        <label className={labelCls}>SOP title *</label>
-        <input
+        <label className={labelCls}>SOP *</label>
+        <select
           required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Site mobilisation checklist"
+          value={selectedSopId}
+          onChange={(e) => setSelectedSopId(e.target.value)}
+          disabled={!owner}
           className={inputCls}
-        />
+        >
+          <option value="">
+            {owner ? "— Select an SOP —" : "Select your name first"}
+          </option>
+          {relevantSops.length > 0 && (
+            <optgroup label="Your SOPs">
+              {relevantSops.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.code ? `${p.code} · ${p.title}` : p.title}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <option value="__new__">+ New SOP (not in the list)</option>
+        </select>
+        {owner && relevantSops.length === 0 && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            No SOPs assigned yet — pick "New SOP" to add one.
+          </p>
+        )}
       </div>
+
+      {isNewSop && (
+        <div>
+          <label className={labelCls}>New SOP title *</label>
+          <input
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Site mobilisation checklist"
+            className={inputCls}
+          />
+        </div>
+      )}
 
       <div>
         <label className={labelCls}>Loom URL *</label>
@@ -132,20 +197,31 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
       <div className="flex items-center gap-2 pt-1">
         <button
           type="submit"
-          disabled={createPlaybook.isPending || !owner || !title || !loomUrl}
+          disabled={
+            createPlaybook.isPending ||
+            updatePlaybook.isPending ||
+            !owner ||
+            !loomUrl ||
+            !selectedSopId ||
+            (isNewSop && !title)
+          }
           className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50 flex items-center gap-1.5"
         >
-          {createPlaybook.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {createPlaybook.isPending ? "Submitting..." : "Submit SOP"}
+          {(createPlaybook.isPending || updatePlaybook.isPending) && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          )}
+          {createPlaybook.isPending || updatePlaybook.isPending
+            ? "Submitting..."
+            : "Submit SOP"}
         </button>
         {justSaved && (
           <span className="flex items-center gap-1 text-[11px] text-success">
             <Check className="h-3.5 w-3.5" /> Submitted — added to pipeline
           </span>
         )}
-        {createPlaybook.isError && (
+        {(createPlaybook.isError || updatePlaybook.isError) && (
           <span className="text-[11px] text-destructive">
-            {(createPlaybook.error as Error).message}
+            {((createPlaybook.error ?? updatePlaybook.error) as Error)?.message}
           </span>
         )}
       </div>
