@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
+import { resolveWorkstreamOwner } from "./staff";
 import type {
   Client,
   Workstream,
@@ -56,7 +57,10 @@ export function useWorkstreams(clientId: string) {
         .eq("client_id", clientId)
         .order("sort_order");
       if (error) throw error;
-      return data;
+      return (data ?? []).map((workstream) => ({
+        ...workstream,
+        owner_name: resolveWorkstreamOwner(workstream.name, workstream.owner_name),
+      }));
     },
     enabled: !!clientId,
   });
