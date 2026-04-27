@@ -49,7 +49,28 @@ function SettingsPage() {
   const navigate = Route.useNavigate();
   const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
+  const { data: allClients = [] } = useClients();
   const upsertIntegration = useUpsertIntegration();
+  const queryClient = useQueryClient();
+
+  const existingDemos = allClients.filter((c) => isDemoClient(c.name));
+  const [demoName, setDemoName] = useState("Apex Demo Co");
+  const [seeding, setSeeding] = useState(false);
+  const [seedMessage, setSeedMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+
+  const handleSeedDemo = async () => {
+    setSeeding(true);
+    setSeedMessage(null);
+    try {
+      const result = await seedDemoClient(demoName.trim() || "Apex Demo Co");
+      await queryClient.invalidateQueries({ queryKey: ["clients"] });
+      setSeedMessage({ kind: "success", text: `Created "${stripDemoPrefix(result.client_name)}". Switch to it from the client picker in the sidebar.` });
+    } catch (err) {
+      setSeedMessage({ kind: "error", text: err instanceof Error ? err.message : "Failed to create demo client." });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   // Loom setup form state
   const [showLoomSetup, setShowLoomSetup] = useState(false);
