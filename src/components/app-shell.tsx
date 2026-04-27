@@ -83,10 +83,15 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
             className="h-8 w-8 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0"
             style={{ background: activeClient.color, color: "oklch(0.15 0.02 270)" }}
           >
-            {getInitials(activeClient.name)}
+            {getInitials(stripDemoPrefix(activeClient.name))}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-medium truncate">{activeClient.name}</div>
+            <div className="text-[13px] font-medium truncate flex items-center gap-1.5">
+              <span className="truncate">{stripDemoPrefix(activeClient.name)}</span>
+              {isDemoClient(activeClient.name) && (
+                <span className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/20 text-accent border border-accent/30 shrink-0">Demo</span>
+              )}
+            </div>
             <div className="text-[10px] text-muted-foreground truncate">{activeClient.industry}</div>
           </div>
           <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", clientOpen && "rotate-180")} />
@@ -108,10 +113,15 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
                   className="h-6 w-6 rounded flex items-center justify-center text-[10px] font-bold"
                   style={{ background: c.color, color: "oklch(0.15 0.02 270)" }}
                 >
-                  {getInitials(c.name)}
+                  {getInitials(stripDemoPrefix(c.name))}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12px] font-medium truncate">{c.name}</div>
+                  <div className="text-[12px] font-medium truncate flex items-center gap-1.5">
+                    <span className="truncate">{stripDemoPrefix(c.name)}</span>
+                    {isDemoClient(c.name) && (
+                      <span className="text-[8px] font-mono uppercase tracking-wider px-1 py-0.5 rounded bg-accent/20 text-accent border border-accent/30 shrink-0">Demo</span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground">{c.health_score}</div>
               </button>
