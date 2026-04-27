@@ -64,7 +64,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
     setSelectedSopId("");
     setTitle("");
     setLoomUrl("");
-    setDuration("");
+    
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +77,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         id: selectedSop.id,
         status: "submitted",
         loom_url: loomUrl,
-        loom_duration_min: duration ? Number(duration) : null,
+        loom_duration_min: null,
         owner_name: selectedSop.owner_name ?? owner,
       });
       const label = selectedSop.code
@@ -98,7 +98,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         type: "sop",
         status: "submitted",
         loom_url: loomUrl,
-        loom_duration_min: duration ? Number(duration) : null,
+        loom_duration_min: null,
         notes: null,
       });
       toast.success("New SOP created", {
