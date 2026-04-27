@@ -2,12 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2 } from "lucide-react";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients } from "@/lib/hooks";
 import { STAFF_MEMBERS } from "@/lib/staff";
+import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 const TABS = ["workspace", "team", "integrations", "notifications", "security"] as const;
