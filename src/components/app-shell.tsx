@@ -7,6 +7,7 @@ import {
 import type { Client } from "@/lib/types";
 import { useActiveClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
+import { isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
 import { cn } from "@/lib/utils";
 
 type Props = {
