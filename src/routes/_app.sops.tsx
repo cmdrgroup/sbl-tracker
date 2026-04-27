@@ -62,6 +62,29 @@ function SopsPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [quickSubmitOpen, setQuickSubmitOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
+
+  const bulkMoveTo = async (newStatus: Playbook["status"]) => {
+    if (!selected.size) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      await Promise.all(ids.map((id) => updatePlaybook.mutateAsync({ id, status: newStatus })));
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleDrop = async (newStatus: Playbook["status"]) => {
     const id = draggingId;
