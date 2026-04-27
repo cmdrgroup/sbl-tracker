@@ -347,6 +347,59 @@ function SettingsPage() {
           )}
 
           {tab === "workspace" && (
+            <Panel title="Demo subaccount" subtitle="Spin up a fully-populated fictional client for sales screenshares">
+              <div className="space-y-4">
+                {existingDemos.length > 0 && (
+                  <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-accent mb-1.5">Existing demos · {existingDemos.length}</div>
+                    <div className="space-y-1">
+                      {existingDemos.map((d) => (
+                        <div key={d.id} className="text-[12px] flex items-center gap-2">
+                          <Sparkles className="h-3 w-3 text-accent" />
+                          <span className="font-medium">{stripDemoPrefix(d.name)}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">· health {d.health_score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Company name</label>
+                  <input
+                    value={demoName}
+                    onChange={(e) => setDemoName(e.target.value)}
+                    placeholder="Apex Demo Co"
+                    className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40"
+                  />
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    Builds a full demo: 7 departments, 10 SOPs across all stages, 3 Captain's Table logs with decisions, action items, and an activity feed. Tagged "[DEMO]" so you'll always know it isn't a real client.
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <button
+                    onClick={handleSeedDemo}
+                    disabled={seeding}
+                    className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50 flex items-center gap-2 self-start"
+                  >
+                    {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {seeding ? "Building demo..." : "Create demo client"}
+                  </button>
+                  {seedMessage && (
+                    <div className={cn(
+                      "text-[12px] flex-1",
+                      seedMessage.kind === "success" ? "text-success" : "text-destructive"
+                    )}>
+                      {seedMessage.text}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          )}
+
+          {tab === "workspace" && (
           <Panel title="Danger zone" subtitle="Irreversible actions">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-destructive/30">
               <div>
