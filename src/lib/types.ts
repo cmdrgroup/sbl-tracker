@@ -10,7 +10,6 @@ export type Client = {
   timezone: string;
   week_start: string;
   coaching_cadence: string | null;
-  is_demo?: boolean;
   created_at: string;
   updated_at: string;
 };
