@@ -28,7 +28,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const [selectedSopId, setSelectedSopId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [loomUrl, setLoomUrl] = useState("");
-  const [duration, setDuration] = useState("");
+  
   const [justSaved, setJustSaved] = useState(false);
 
   // Build deduped name list from workstream owners + existing playbook owners
@@ -64,7 +64,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
     setSelectedSopId("");
     setTitle("");
     setLoomUrl("");
-    setDuration("");
+    
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +77,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         id: selectedSop.id,
         status: "submitted",
         loom_url: loomUrl,
-        loom_duration_min: duration ? Number(duration) : null,
+        loom_duration_min: null,
         owner_name: selectedSop.owner_name ?? owner,
       });
       const label = selectedSop.code
@@ -98,7 +98,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         type: "sop",
         status: "submitted",
         loom_url: loomUrl,
-        loom_duration_min: duration ? Number(duration) : null,
+        loom_duration_min: null,
         notes: null,
       });
       toast.success("New SOP created", {
@@ -203,18 +203,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         </p>
       </div>
 
-      {!compact && (
-        <div>
-          <label className={labelCls}>Duration (min)</label>
-          <input
-            type="number"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            placeholder="e.g. 12"
-            className={inputCls}
-          />
-        </div>
-      )}
+
 
       <div className="flex items-center gap-2 pt-1">
         <button
