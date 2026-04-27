@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Filter, Plus, Loader2, X, Send } from "lucide-react";
+import { Search, Filter, Plus, Loader2, X, Send, ArrowLeftRight, CheckSquare, Square } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { z } from "zod";
@@ -62,6 +62,29 @@ function SopsPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [quickSubmitOpen, setQuickSubmitOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
+
+  const bulkMoveTo = async (newStatus: Playbook["status"]) => {
+    if (!selected.size) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      await Promise.all(ids.map((id) => updatePlaybook.mutateAsync({ id, status: newStatus })));
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleDrop = async (newStatus: Playbook["status"]) => {
     const id = draggingId;
@@ -408,37 +431,100 @@ function SopsPage() {
         </div>
       ) : (
         <Panel>
-          <div className="overflow-x-auto -mx-2 scrollbar-thin">
-            <div className="min-w-[700px] px-2">
-              <div className="grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-1.5 text-[10px] uppercase tracking-wider font-mono text-muted-foreground border-b border-border">
-                <div>Code</div><div>Title</div><div>Department</div><div>Owner</div><div>Status</div><div className="text-right">Updated</div>
-              </div>
-              {filtered.map((s) => (
+          {selected.size > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded-md bg-primary/10 border border-primary/30">
+              <span className="text-[12px] font-medium text-primary flex items-center gap-1.5">
+                <ArrowLeftRight className="h-3.5 w-3.5" />
+                {selected.size} selected — move to:
+              </span>
+              {COLUMNS.map((c) => (
                 <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setOpenSopId(s.id)}
-                  className="w-full text-left grid grid-cols-[80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0"
+                  key={c.key}
+                  disabled={bulkBusy}
+                  onClick={() => bulkMoveTo(c.key as Playbook["status"])}
+                  className="px-2 py-1 rounded text-[11px] border bg-secondary/60 border-border hover:bg-secondary disabled:opacity-50"
                 >
-                  <div className="font-mono text-[11px] text-muted-foreground">{s.code ?? "—"}</div>
-                  <div className="truncate">{s.title}</div>
-                  <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
-                  <div className="text-muted-foreground text-[11px]">{s.owner_name ?? "—"}</div>
-                  <div>
-                    <span className={cn(
-                      "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider",
-                      s.status === "approved" && "bg-success/15 text-success border-success/30",
-                      s.status === "under_review" && "bg-warning/15 text-warning border-warning/30",
-                      s.status === "submitted" && "bg-info/15 text-info border-info/30",
-                      s.status === "refined" && "bg-accent/15 text-accent border-accent/30",
-                      s.status === "not_started" && "bg-secondary text-muted-foreground border-border",
-                    )}>
-                      {s.status.replace("_", " ")}
-                    </span>
-                  </div>
-                  <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
+                  {c.label}
                 </button>
               ))}
+              <button onClick={clearSelection} className="ml-auto text-[11px] text-muted-foreground hover:text-foreground px-2 py-1">
+                Clear
+              </button>
+            </div>
+          )}
+          <div className="overflow-x-auto -mx-2 scrollbar-thin">
+            <div className="min-w-[740px] px-2">
+              <div className="grid grid-cols-[28px_80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-1.5 text-[10px] uppercase tracking-wider font-mono text-muted-foreground border-b border-border items-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (filtered.every((s) => selected.has(s.id)) && filtered.length > 0) {
+                      clearSelection();
+                    } else {
+                      setSelected(new Set(filtered.map((s) => s.id)));
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="Select all"
+                >
+                  {filtered.length > 0 && filtered.every((s) => selected.has(s.id)) ? (
+                    <CheckSquare className="h-3.5 w-3.5" />
+                  ) : (
+                    <Square className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <div>Code</div><div>Title</div><div>Department</div><div>Owner</div><div>Status</div><div className="text-right">Updated</div>
+              </div>
+              {filtered.map((s) => {
+                const isSelected = selected.has(s.id);
+                return (
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "grid grid-cols-[28px_80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-2.5 text-[12px] hover:bg-secondary/30 rounded-md items-center border-b border-border last:border-0",
+                      isSelected && "bg-primary/5",
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleSelected(s.id); }}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label={isSelected ? "Deselect" : "Select"}
+                    >
+                      {isSelected ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOpenSopId(s.id)}
+                      className="font-mono text-[11px] text-muted-foreground text-left"
+                    >
+                      {s.code ?? "—"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOpenSopId(s.id)}
+                      className="truncate text-left"
+                    >
+                      {s.title}
+                    </button>
+                    <div className="text-muted-foreground text-[11px]">{s.workstream?.name ?? "—"}</div>
+                    <div className="text-muted-foreground text-[11px]">{s.owner_name ?? "—"}</div>
+                    <div>
+                      <span className={cn(
+                        "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider",
+                        s.status === "approved" && "bg-success/15 text-success border-success/30",
+                        s.status === "under_review" && "bg-warning/15 text-warning border-warning/30",
+                        s.status === "submitted" && "bg-info/15 text-info border-info/30",
+                        s.status === "refined" && "bg-accent/15 text-accent border-accent/30",
+                        s.status === "not_started" && "bg-secondary text-muted-foreground border-border",
+                      )}>
+                        {s.status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <div className="text-right text-[10px] text-muted-foreground font-mono">{timeAgo(s.updated_at)}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </Panel>
