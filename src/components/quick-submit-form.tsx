@@ -203,18 +203,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         </p>
       </div>
 
-      {!compact && (
-        <div>
-          <label className={labelCls}>Duration (min)</label>
-          <input
-            type="number"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            placeholder="e.g. 12"
-            className={inputCls}
-          />
-        </div>
-      )}
+
 
       <div className="flex items-center gap-2 pt-1">
         <button
