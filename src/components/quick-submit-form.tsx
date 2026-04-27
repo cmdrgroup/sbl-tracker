@@ -28,7 +28,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const [selectedSopId, setSelectedSopId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [loomUrl, setLoomUrl] = useState("");
-  const [duration, setDuration] = useState("");
+  
   const [justSaved, setJustSaved] = useState(false);
 
   // Build deduped name list from workstream owners + existing playbook owners
