@@ -379,12 +379,46 @@ function SopsPage() {
         </div>
       )}
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/30">
+          <span className="text-[12px] font-medium text-primary flex items-center gap-1.5">
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+            {selected.size} selected — move to:
+          </span>
+          {COLUMNS.map((c) => (
+            <button
+              key={c.key}
+              disabled={bulkBusy}
+              onClick={() => bulkMoveTo(c.key as Playbook["status"])}
+              className="px-2 py-1 rounded text-[11px] border bg-secondary/60 border-border hover:bg-secondary disabled:opacity-50"
+            >
+              {c.label}
+            </button>
+          ))}
+          <button onClick={clearSelection} className="ml-auto text-[11px] text-muted-foreground hover:text-foreground px-2 py-1">
+            Clear
+          </button>
+        </div>
+      )}
+
       {view === "kanban" ? (
         <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0 scrollbar-thin">
           <div className="grid grid-cols-5 gap-3 min-w-[900px]">
             {COLUMNS.map((col) => {
               const items = filtered.filter((s) => s.status === col.key);
               const isOver = dragOverCol === col.key;
+              const allSelected = items.length > 0 && items.every((s) => selected.has(s.id));
+              const toggleColumn = () => {
+                setSelected((prev) => {
+                  const next = new Set(prev);
+                  if (allSelected) {
+                    items.forEach((s) => next.delete(s.id));
+                  } else {
+                    items.forEach((s) => next.add(s.id));
+                  }
+                  return next;
+                });
+              };
               return (
                 <div
                   key={col.key}
@@ -396,33 +430,63 @@ function SopsPage() {
                     isOver ? "border-primary/60 bg-primary/5" : "border-border",
                   )}
                 >
-                  <div className="flex items-center justify-between px-1.5 py-1.5 mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{col.label}</span>
+                  <div className="flex items-center justify-between px-1.5 py-1.5 mb-2 gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <button
+                        type="button"
+                        onClick={toggleColumn}
+                        disabled={items.length === 0}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        aria-label={allSelected ? "Deselect all in column" : "Select all in column"}
+                        title={allSelected ? "Deselect all" : "Select all"}
+                      >
+                        {allSelected ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                      </button>
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground truncate">{col.label}</span>
+                    </div>
                     <span className="text-[10px] font-mono px-1.5 rounded bg-secondary text-muted-foreground">{items.length}</span>
                   </div>
                   <div className="space-y-2">
-                    {items.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        draggable
-                        onDragStart={(e) => { setDraggingId(s.id); e.dataTransfer.effectAllowed = "move"; }}
-                        onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
-                        onClick={() => setOpenSopId(s.id)}
-                        className={cn(
-                          "w-full text-left bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-all cursor-grab active:cursor-grabbing",
-                          STATUS_CLASS[s.status],
-                          draggingId === s.id && "opacity-40",
-                        )}
-                      >
-                        <div className="text-[10px] font-mono text-muted-foreground">{s.code ?? "—"}</div>
-                        <div className="text-[12px] font-medium mt-0.5 leading-snug">{s.title}</div>
-                        <div className="flex items-center justify-between mt-2 text-[10px]">
-                          <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
-                          {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
+                    {items.map((s) => {
+                      const isSelected = selected.has(s.id);
+                      return (
+                        <div
+                          key={s.id}
+                          draggable
+                          onDragStart={(e) => { setDraggingId(s.id); e.dataTransfer.effectAllowed = "move"; }}
+                          onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                          className={cn(
+                            "group relative bg-card border border-border border-l-2 rounded-md p-2.5 hover:border-primary/40 hover:bg-secondary/40 transition-all cursor-grab active:cursor-grabbing",
+                            STATUS_CLASS[s.status],
+                            draggingId === s.id && "opacity-40",
+                            isSelected && "ring-1 ring-primary/40 bg-primary/5",
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); toggleSelected(s.id); }}
+                              className="mt-0.5 text-muted-foreground hover:text-foreground shrink-0"
+                              aria-label={isSelected ? "Deselect" : "Select"}
+                            >
+                              {isSelected ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setOpenSopId(s.id)}
+                              className="flex-1 min-w-0 text-left"
+                            >
+                              <div className="text-[10px] font-mono text-muted-foreground">{s.code ?? "—"}</div>
+                              <div className="text-[12px] font-medium mt-0.5 leading-snug">{s.title}</div>
+                              <div className="flex items-center justify-between mt-2 text-[10px]">
+                                <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
+                                {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
+                              </div>
+                            </button>
+                          </div>
                         </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -431,27 +495,6 @@ function SopsPage() {
         </div>
       ) : (
         <Panel>
-          {selected.size > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded-md bg-primary/10 border border-primary/30">
-              <span className="text-[12px] font-medium text-primary flex items-center gap-1.5">
-                <ArrowLeftRight className="h-3.5 w-3.5" />
-                {selected.size} selected — move to:
-              </span>
-              {COLUMNS.map((c) => (
-                <button
-                  key={c.key}
-                  disabled={bulkBusy}
-                  onClick={() => bulkMoveTo(c.key as Playbook["status"])}
-                  className="px-2 py-1 rounded text-[11px] border bg-secondary/60 border-border hover:bg-secondary disabled:opacity-50"
-                >
-                  {c.label}
-                </button>
-              ))}
-              <button onClick={clearSelection} className="ml-auto text-[11px] text-muted-foreground hover:text-foreground px-2 py-1">
-                Clear
-              </button>
-            </div>
-          )}
           <div className="overflow-x-auto -mx-2 scrollbar-thin">
             <div className="min-w-[740px] px-2">
               <div className="grid grid-cols-[28px_80px_1fr_140px_140px_120px_70px] gap-3 px-2 py-1.5 text-[10px] uppercase tracking-wider font-mono text-muted-foreground border-b border-border items-center">
