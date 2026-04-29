@@ -6,7 +6,8 @@ import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Load
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient } from "@/lib/hooks";
+import { toast } from "sonner";
 import { STAFF_MEMBERS } from "@/lib/staff";
 import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
 import { useQueryClient } from "@tanstack/react-query";
