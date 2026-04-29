@@ -3,11 +3,13 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AuthContext } from "@/lib/auth-context";
 import type { UserProfile } from "@/lib/types";
+import { isDevBypassHost, DEV_MOCK_USER, DEV_MOCK_PROFILE } from "@/lib/dev-bypass";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const devBypass = isDevBypassHost();
+  const [user, setUser] = useState<User | null>(devBypass ? DEV_MOCK_USER : null);
+  const [profile, setProfile] = useState<UserProfile | null>(devBypass ? DEV_MOCK_PROFILE : null);
+  const [loading, setLoading] = useState(!devBypass);
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -15,10 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("id", userId)
       .single();
-    setProfile(data);
+    if (data) setProfile(data);
   }, []);
 
   useEffect(() => {
+    if (devBypass) return;
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
