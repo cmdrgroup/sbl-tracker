@@ -20,6 +20,7 @@ export function useClients() {
   return useQuery<Client[]>({
     queryKey: ["clients"],
     queryFn: async () => {
+      if (isDevBypassHost()) return DEV_MOCK_CLIENTS;
       const { data, error } = await supabase
         .from("clients")
         .select("*")
