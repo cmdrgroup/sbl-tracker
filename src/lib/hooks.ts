@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
 import { resolveWorkstreamOwner } from "./staff";
+import { isDevBypassHost, DEV_MOCK_CLIENTS } from "./dev-bypass";
 import type {
   Client,
   Workstream,
@@ -19,6 +20,7 @@ export function useClients() {
   return useQuery<Client[]>({
     queryKey: ["clients"],
     queryFn: async () => {
+      if (isDevBypassHost()) return DEV_MOCK_CLIENTS;
       const { data, error } = await supabase
         .from("clients")
         .select("*")

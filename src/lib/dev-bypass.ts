@@ -1,5 +1,5 @@
 import type { User } from "@supabase/supabase-js";
-import type { UserProfile } from "./types";
+import type { Client, UserProfile } from "./types";
 
 /**
  * Returns true when running in the Lovable preview/editor or localhost.
@@ -36,3 +36,19 @@ export const DEV_MOCK_PROFILE: UserProfile = {
   avatar_url: null,
   created_at: new Date().toISOString(),
 };
+
+export const DEV_MOCK_CLIENTS: Client[] = [
+  {
+    id: "00000000-0000-0000-0000-0000000c1ient",
+    name: "SBL Solutions (Preview)",
+    slug: "sbl",
+    industry: "Construction Services",
+    color: "oklch(0.62 0.22 280)",
+    health_score: 87,
+    timezone: "Australia/Sydney",
+    week_start: "monday",
+    coaching_cadence: "weekly",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
