@@ -45,6 +45,19 @@ export function useClientBySlug(slug: string) {
   });
 }
 
+export function useUpdateClient() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Client> }) => {
+      const { error } = await supabase.from("clients").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}
+
 // ─── WORKSTREAMS ────────────────────────────────────────────
 
 export function useWorkstreams(clientId: string) {
