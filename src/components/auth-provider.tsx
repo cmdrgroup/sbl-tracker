@@ -45,13 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [fetchProfile, devBypass]);
 
   const signOut = useCallback(async () => {
+    if (devBypass) return; // no-op in preview
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
-  }, []);
+  }, [devBypass]);
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, signOut }}>
