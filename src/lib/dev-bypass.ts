@@ -1,5 +1,5 @@
 import type { User } from "@supabase/supabase-js";
-import type { UserProfile } from "./types";
+import type { Client, UserProfile } from "./types";
 
 /**
  * Returns true when running in the Lovable preview/editor or localhost.
