@@ -6,7 +6,8 @@ import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Load
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient } from "@/lib/hooks";
+import { toast } from "sonner";
 import { STAFF_MEMBERS } from "@/lib/staff";
 import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
 import { useQueryClient } from "@tanstack/react-query";
@@ -51,7 +52,36 @@ function SettingsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const { data: allClients = [] } = useClients();
   const upsertIntegration = useUpsertIntegration();
+  const updateClient = useUpdateClient();
   const queryClient = useQueryClient();
+
+  const [workspaceForm, setWorkspaceForm] = useState({
+    name: client.name,
+    timezone: client.timezone ?? "Australia/Brisbane",
+    week_start: client.week_start ?? "Monday",
+    coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+    industry: client.industry ?? "",
+    slug: client.slug,
+  });
+  const dirty =
+    workspaceForm.name !== client.name ||
+    workspaceForm.timezone !== (client.timezone ?? "Australia/Brisbane") ||
+    workspaceForm.week_start !== (client.week_start ?? "Monday") ||
+    workspaceForm.coaching_cadence !== (client.coaching_cadence ?? "Tuesdays · 7:00am") ||
+    workspaceForm.industry !== (client.industry ?? "") ||
+    workspaceForm.slug !== client.slug;
+
+  const handleSaveWorkspace = async () => {
+    try {
+      await updateClient.mutateAsync({ id: client.id, patch: workspaceForm });
+      toast.success("Workspace saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save workspace");
+    }
+  };
+
+  const setField = (key: keyof typeof workspaceForm) => (v: string) =>
+    setWorkspaceForm((f) => ({ ...f, [key]: v }));
 
   const existingDemos = allClients.filter((c) => isDemoClient(c.name));
   const [demoName, setDemoName] = useState("Apex Demo Co");
@@ -150,12 +180,36 @@ function SettingsPage() {
           {tab === "workspace" && (
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
-              <Field label="Workspace name" value={`${client.name} · ${profile?.full_name ?? "Commander"}`} />
-              <Field label="Default timezone" value={client.timezone ?? "Australia/Brisbane"} />
-              <Field label="Week starts on" value={client.week_start ?? "Monday"} />
-              <Field label="Coaching cadence" value={client.coaching_cadence ?? "Tuesdays · 7:00am"} />
-              <Field label="Industry" value={client.industry ?? "—"} />
-              <Field label="Client slug" value={client.slug} />
+              <Field label="Workspace name" value={workspaceForm.name} onChange={setField("name")} />
+              <Field label="Default timezone" value={workspaceForm.timezone} onChange={setField("timezone")} />
+              <Field label="Week starts on" value={workspaceForm.week_start} onChange={setField("week_start")} />
+              <Field label="Coaching cadence" value={workspaceForm.coaching_cadence} onChange={setField("coaching_cadence")} />
+              <Field label="Industry" value={workspaceForm.industry} onChange={setField("industry")} />
+              <Field label="Client slug" value={workspaceForm.slug} onChange={setField("slug")} />
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                {dirty && (
+                  <button
+                    onClick={() => setWorkspaceForm({
+                      name: client.name,
+                      timezone: client.timezone ?? "Australia/Brisbane",
+                      week_start: client.week_start ?? "Monday",
+                      coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+                      industry: client.industry ?? "",
+                      slug: client.slug,
+                    })}
+                    className="px-3 py-1.5 rounded-md bg-secondary/60 border border-border text-[12px]"
+                  >
+                    Discard
+                  </button>
+                )}
+                <button
+                  onClick={handleSaveWorkspace}
+                  disabled={!dirty || updateClient.isPending}
+                  className="px-4 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
+                >
+                  {updateClient.isPending ? "Saving…" : "Save changes"}
+                </button>
+              </div>
             </div>
           </Panel>
           )}
@@ -418,13 +472,14 @@ function SettingsPage() {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, onChange }: { label: string; value: string; onChange?: (v: string) => void }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start sm:items-center gap-1.5 sm:gap-3">
       <label className="text-[12px] text-muted-foreground">{label}</label>
       <input
-        key={value}
-        defaultValue={value}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        readOnly={!onChange}
         className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
       />
     </div>
