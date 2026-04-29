@@ -22,6 +22,7 @@ export async function seedDemoClient(companyName = "Apex Demo Co"): Promise<Seed
   const userId = userData.user?.id;
   if (!userId) throw new Error("You must be signed in to create a demo client.");
 
+  const clientId = crypto.randomUUID();
   const fullName = `${DEMO_PREFIX}${companyName}`;
   const slug =
     companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") +
@@ -29,9 +30,10 @@ export async function seedDemoClient(companyName = "Apex Demo Co"): Promise<Seed
     Math.random().toString(36).slice(2, 8);
 
   // 1. Client
-  const { data: client, error: clientErr } = await supabase
+  const { error: clientErr } = await supabase
     .from("clients")
     .insert({
+      id: clientId,
       name: fullName,
       slug,
       industry: "Commercial Construction",
@@ -40,19 +42,15 @@ export async function seedDemoClient(companyName = "Apex Demo Co"): Promise<Seed
       timezone: "Australia/Brisbane",
       week_start: "Monday",
       coaching_cadence: "Tuesdays · 7:00am",
-    })
-    .select()
-    .single();
+    });
   if (clientErr) throw new Error(`Couldn't create demo client: ${clientErr.message}`);
-  const clientId = client.id as string;
 
   // 2. Link caller as owner
   const { error: linkErr } = await supabase
     .from("client_users")
     .insert({ client_id: clientId, user_id: userId, role: "owner" });
   if (linkErr) {
-    // Don't bail — the client is already created and may be visible via other policies.
-    console.warn("Demo client created but owner link failed:", linkErr.message);
+    throw new Error(`Demo client was created but couldn't be linked to your account: ${linkErr.message}`);
   }
 
   // 3. Workstreams
