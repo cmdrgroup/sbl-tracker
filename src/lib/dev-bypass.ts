@@ -36,3 +36,19 @@ export const DEV_MOCK_PROFILE: UserProfile = {
   avatar_url: null,
   created_at: new Date().toISOString(),
 };
+
+export const DEV_MOCK_CLIENTS: Client[] = [
+  {
+    id: "00000000-0000-0000-0000-0000000c1ient",
+    name: "SBL Solutions (Preview)",
+    slug: "sbl",
+    industry: "Construction Services",
+    color: "oklch(0.62 0.22 280)",
+    health_score: 87,
+    timezone: "Australia/Sydney",
+    week_start: "monday",
+    coaching_cadence: "weekly",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
