@@ -180,12 +180,36 @@ function SettingsPage() {
           {tab === "workspace" && (
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
-              <Field label="Workspace name" value={`${client.name} · ${profile?.full_name ?? "Commander"}`} />
-              <Field label="Default timezone" value={client.timezone ?? "Australia/Brisbane"} />
-              <Field label="Week starts on" value={client.week_start ?? "Monday"} />
-              <Field label="Coaching cadence" value={client.coaching_cadence ?? "Tuesdays · 7:00am"} />
-              <Field label="Industry" value={client.industry ?? "—"} />
-              <Field label="Client slug" value={client.slug} />
+              <Field label="Workspace name" value={workspaceForm.name} onChange={setField("name")} />
+              <Field label="Default timezone" value={workspaceForm.timezone} onChange={setField("timezone")} />
+              <Field label="Week starts on" value={workspaceForm.week_start} onChange={setField("week_start")} />
+              <Field label="Coaching cadence" value={workspaceForm.coaching_cadence} onChange={setField("coaching_cadence")} />
+              <Field label="Industry" value={workspaceForm.industry} onChange={setField("industry")} />
+              <Field label="Client slug" value={workspaceForm.slug} onChange={setField("slug")} />
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                {dirty && (
+                  <button
+                    onClick={() => setWorkspaceForm({
+                      name: client.name,
+                      timezone: client.timezone ?? "Australia/Brisbane",
+                      week_start: client.week_start ?? "Monday",
+                      coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+                      industry: client.industry ?? "",
+                      slug: client.slug,
+                    })}
+                    className="px-3 py-1.5 rounded-md bg-secondary/60 border border-border text-[12px]"
+                  >
+                    Discard
+                  </button>
+                )}
+                <button
+                  onClick={handleSaveWorkspace}
+                  disabled={!dirty || updateClient.isPending}
+                  className="px-4 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
+                >
+                  {updateClient.isPending ? "Saving…" : "Save changes"}
+                </button>
+              </div>
             </div>
           </Panel>
           )}
