@@ -52,7 +52,36 @@ function SettingsPage() {
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const { data: allClients = [] } = useClients();
   const upsertIntegration = useUpsertIntegration();
+  const updateClient = useUpdateClient();
   const queryClient = useQueryClient();
+
+  const [workspaceForm, setWorkspaceForm] = useState({
+    name: client.name,
+    timezone: client.timezone ?? "Australia/Brisbane",
+    week_start: client.week_start ?? "Monday",
+    coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+    industry: client.industry ?? "",
+    slug: client.slug,
+  });
+  const dirty =
+    workspaceForm.name !== client.name ||
+    workspaceForm.timezone !== (client.timezone ?? "Australia/Brisbane") ||
+    workspaceForm.week_start !== (client.week_start ?? "Monday") ||
+    workspaceForm.coaching_cadence !== (client.coaching_cadence ?? "Tuesdays · 7:00am") ||
+    workspaceForm.industry !== (client.industry ?? "") ||
+    workspaceForm.slug !== client.slug;
+
+  const handleSaveWorkspace = async () => {
+    try {
+      await updateClient.mutateAsync({ id: client.id, patch: workspaceForm });
+      toast.success("Workspace saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save workspace");
+    }
+  };
+
+  const setField = (key: keyof typeof workspaceForm) => (v: string) =>
+    setWorkspaceForm((f) => ({ ...f, [key]: v }));
 
   const existingDemos = allClients.filter((c) => isDemoClient(c.name));
   const [demoName, setDemoName] = useState("Apex Demo Co");
