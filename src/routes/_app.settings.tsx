@@ -472,13 +472,14 @@ function SettingsPage() {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, onChange }: { label: string; value: string; onChange?: (v: string) => void }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start sm:items-center gap-1.5 sm:gap-3">
       <label className="text-[12px] text-muted-foreground">{label}</label>
       <input
-        key={value}
-        defaultValue={value}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        readOnly={!onChange}
         className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
       />
     </div>
