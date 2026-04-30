@@ -384,8 +384,14 @@ function SessionActions({
 }) {
   const createAction = useCreateActionItem();
   const updateAction = useUpdateActionItem();
+  const { data: staff = [] } = useStaff();
+  const staffNames = staff.map((s) => s.name);
   const [title, setTitle] = useState("");
-  const [owner, setOwner] = useState(STAFF_MEMBERS[0]);
+  const [owner, setOwner] = useState<string>("");
+  // Default to first staff member once loaded.
+  useEffect(() => {
+    if (!owner && staffNames.length > 0) setOwner(staffNames[0]);
+  }, [owner, staffNames]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -446,7 +452,7 @@ function SessionActions({
           onChange={(e) => setOwner(e.target.value)}
           className={cn(inputCls, "sm:w-44 text-[12px] py-1.5")}
         >
-          {STAFF_MEMBERS.map((s) => (
+          {staffNames.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
