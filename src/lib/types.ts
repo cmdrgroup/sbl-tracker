@@ -111,6 +111,13 @@ export type AiBrief = {
   created_at: string;
 };
 
+export type Staff = {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ClientIntegration = {
   id: string;
   client_id: string;
