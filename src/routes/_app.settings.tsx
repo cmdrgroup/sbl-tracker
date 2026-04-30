@@ -6,7 +6,7 @@ import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Load
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient, useUpdateWorkstream } from "@/lib/hooks";
 import { toast } from "sonner";
 import { STAFF_MEMBERS } from "@/lib/staff";
 import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
@@ -215,24 +215,8 @@ function SettingsPage() {
           )}
 
           {tab === "team" && (
-            <Panel title="Team & department leads" subtitle="Who runs what at SBL Solutions Services">
-              <div className="space-y-2">
-                {workstreams.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                    <div>
-                      <div className="text-[13px] font-medium">{w.name}</div>
-                      <div className="text-[11px] text-muted-foreground">Lead: {w.owner_name ?? "—"}</div>
-                    </div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Dept</span>
-                  </div>
-                ))}
-                <div className="p-3 rounded-lg border border-dashed border-border text-[11px] text-muted-foreground">
-                  Staff roster ({STAFF_MEMBERS.length}): {STAFF_MEMBERS.join(", ")}
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  To change a department lead or add new staff, edit <code>src/lib/staff.ts</code> or run an UPDATE on the <code>workstreams</code> table.
-                </p>
-              </div>
+            <Panel title="Team & department leads" subtitle="Assign a staff member to lead each department">
+              <TeamTab workstreams={workstreams} />
             </Panel>
           )}
 
