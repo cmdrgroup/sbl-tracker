@@ -180,7 +180,7 @@ function SettingsPage() {
           <Panel title="Workspace" subtitle="The basics">
             <div className="space-y-4">
               <Field label="Workspace name" value={workspaceForm.name} onChange={setField("name")} />
-              <Field label="Default timezone" value={workspaceForm.timezone} onChange={setField("timezone")} />
+              <TimezoneField label="Default timezone" value={workspaceForm.timezone} onChange={setField("timezone")} />
               <Field label="Week starts on" value={workspaceForm.week_start} onChange={setField("week_start")} />
               <Field label="Coaching cadence" value={workspaceForm.coaching_cadence} onChange={setField("coaching_cadence")} />
               <Field label="Industry" value={workspaceForm.industry} onChange={setField("industry")} />
@@ -469,7 +469,74 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstreams>["data"] }) {
+// All IANA timezones supported by the browser (graceful fallback to a curated list).
+const TIMEZONES: string[] = (() => {
+  try {
+    const fn = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf;
+    if (typeof fn === "function") return fn("timeZone");
+  } catch { /* noop */ }
+  return [
+    "UTC",
+    "Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane", "Australia/Perth", "Australia/Adelaide", "Australia/Hobart", "Australia/Darwin",
+    "Pacific/Auckland",
+    "Asia/Singapore", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Asia/Dubai",
+    "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Madrid", "Europe/Amsterdam", "Europe/Stockholm",
+    "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Toronto", "America/Sao_Paulo",
+    "Africa/Johannesburg",
+  ];
+})();
+
+function formatTimezoneLabel(tz: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" })
+      .formatToParts(new Date());
+    const offset = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    return offset ? `${tz.replace(/_/g, " ")} (${offset})` : tz.replace(/_/g, " ");
+  } catch {
+    return tz.replace(/_/g, " ");
+  }
+}
+
+function TimezoneField({ label, value, onChange }: { label: string; value: string; onChange?: (v: string) => void }) {
+  // Detect the user's browser timezone so we can default + highlight it.
+  const browserTz = (() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return "UTC"; }
+  })();
+
+  // If the saved value isn't a recognised IANA zone, still show it so we
+  // never silently overwrite legacy data.
+  const options = TIMEZONES.includes(value) || !value ? TIMEZONES : [value, ...TIMEZONES];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start sm:items-center gap-1.5 sm:gap-3">
+      <label className="text-[12px] text-muted-foreground">{label}</label>
+      <div className="flex items-center gap-2">
+        <select
+          value={value || browserTz}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          disabled={!onChange}
+          className="flex-1 bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
+        >
+          {options.map((tz) => (
+            <option key={tz} value={tz}>
+              {formatTimezoneLabel(tz)}{tz === browserTz ? " · your browser" : ""}
+            </option>
+          ))}
+        </select>
+        {onChange && value !== browserTz && (
+          <button
+            type="button"
+            onClick={() => onChange(browserTz)}
+            className="text-[11px] px-2 py-1 rounded-md border border-border bg-secondary/40 text-muted-foreground hover:text-foreground shrink-0"
+            title={`Use browser timezone (${browserTz})`}
+          >
+            Use browser
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
   const updateWorkstream = useUpdateWorkstream();
   const { data: staff = [], isLoading: loadingStaff } = useStaff();
   const addStaff = useAddStaff();
