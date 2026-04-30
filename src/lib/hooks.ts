@@ -51,10 +51,28 @@ export function useUpdateClient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Client> }) => {
+      if (isDevBypassHost()) {
+        // Mutate the in-memory mock so changes persist for the preview session
+        const idx = DEV_MOCK_CLIENTS.findIndex((c) => c.id === id);
+        if (idx >= 0) {
+          DEV_MOCK_CLIENTS[idx] = {
+            ...DEV_MOCK_CLIENTS[idx],
+            ...patch,
+            updated_at: new Date().toISOString(),
+          };
+        }
+        return;
+      }
       const { error } = await supabase.from("clients").update(patch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
+      // Optimistically update the cached clients list so every consumer
+      // (sidebar, header, active client context) reflects the new values
+      // immediately — without waiting for refetch.
+      qc.setQueryData<Client[]>(["clients"], (old) =>
+        old?.map((c) => (c.id === vars.id ? { ...c, ...vars.patch } : c)),
+      );
       qc.invalidateQueries({ queryKey: ["clients"] });
     },
   });
