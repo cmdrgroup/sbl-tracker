@@ -65,15 +65,18 @@ function AppWithClients() {
   const [activeClient, setActiveClient] = useState<Client | null>(null);
   const [cmdOpen, setCmdOpen] = useState(false);
 
-  // Set initial client once loaded
+  // Set initial client + keep it in sync when the underlying list refreshes
+  // (e.g. after a workspace settings save) so updated fields propagate
+  // everywhere that reads from the active client context.
   useEffect(() => {
-    if (clientList.length > 0 && !activeClient) {
-      // TODO: In production, derive from subdomain
-      // const hostname = window.location.hostname;
-      // const slug = hostname.split(".")[0];
-      // const match = clientList.find((c) => c.slug === slug);
-      // setActiveClient(match ?? clientList[0]);
+    if (clientList.length === 0) return;
+    if (!activeClient) {
       setActiveClient(clientList[0]);
+      return;
+    }
+    const fresh = clientList.find((c) => c.id === activeClient.id);
+    if (fresh && fresh !== activeClient) {
+      setActiveClient(fresh);
     }
   }, [clientList, activeClient]);
 
