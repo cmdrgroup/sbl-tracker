@@ -537,6 +537,8 @@ function TimezoneField({ label, value, onChange }: { label: string; value: strin
     </div>
   );
 }
+
+function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstreams>["data"] }) {
   const updateWorkstream = useUpdateWorkstream();
   const { data: staff = [], isLoading: loadingStaff } = useStaff();
   const addStaff = useAddStaff();
