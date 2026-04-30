@@ -8,9 +8,9 @@ import {
   useActionItems,
   useCreateActionItem,
   useUpdateActionItem,
+  useStaff,
 } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
-import { STAFF_MEMBERS } from "@/lib/staff";
 import { cn } from "@/lib/utils";
 
 function formatDate(dateStr: string): string {
