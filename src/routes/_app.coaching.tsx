@@ -40,6 +40,8 @@ function CoachingPage() {
   const { client } = useRequiredClient();
   const { data: logs = [], isLoading } = useCoachingLogs(client.id);
   const { data: actionItems = [] } = useActionItems(client.id);
+  const { data: staff = [] } = useStaff();
+  const staffNames = staff.map((s) => s.name);
   const createLog = useCreateCoachingLog();
 
   const totalDecisions = logs.reduce((s, l) => s + (l.decisions?.length ?? 0), 0);
@@ -284,7 +286,7 @@ function CoachingPage() {
             className={cn(inputCls, "w-auto text-[11px] py-1 ml-1")}
           >
             <option value="">Other staff…</option>
-            {STAFF_MEMBERS.filter((s) => !QUICK_OWNERS.includes(s)).map((s) => (
+            {staffNames.filter((s) => !QUICK_OWNERS.includes(s)).map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
