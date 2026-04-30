@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
-import type { Client, UserProfile } from "./types";
+import type { Client, Staff, UserProfile } from "./types";
+import { STAFF_MEMBERS } from "./staff";
 
 /**
  * Returns true when running in the Lovable preview/editor or localhost.
@@ -52,3 +53,10 @@ export const DEV_MOCK_CLIENTS: Client[] = [
     updated_at: new Date().toISOString(),
   },
 ];
+
+export const DEV_MOCK_STAFF: Staff[] = STAFF_MEMBERS.map((name, i) => ({
+  id: `00000000-0000-0000-0000-${String(i).padStart(12, "0")}`,
+  name,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+}));

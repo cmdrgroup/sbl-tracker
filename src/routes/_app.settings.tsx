@@ -2,13 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Sparkles, Plus, Trash2, Pencil, Check } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient, useUpdateWorkstream } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient, useUpdateWorkstream, useStaff, useAddStaff, useRenameStaff, useDeleteStaff } from "@/lib/hooks";
 import { toast } from "sonner";
-import { STAFF_MEMBERS } from "@/lib/staff";
 import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -472,9 +471,17 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
 
 function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstreams>["data"] }) {
   const updateWorkstream = useUpdateWorkstream();
+  const { data: staff = [], isLoading: loadingStaff } = useStaff();
+  const addStaff = useAddStaff();
+  const renameStaff = useRenameStaff();
+  const deleteStaff = useDeleteStaff();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const list = workstreams ?? [];
+  const staffNames = staff.map((s) => s.name);
 
   const handleChange = async (id: string, owner_name: string) => {
     setPendingId(id);
@@ -488,52 +495,180 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
     }
   };
 
-  if (list.length === 0) {
-    return (
-      <p className="text-[12px] text-muted-foreground">
-        No departments found for this client yet.
-      </p>
-    );
-  }
+  const handleAdd = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    try {
+      await addStaff.mutateAsync(name);
+      toast.success(`Added ${name}`);
+      setNewName("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add staff");
+    }
+  };
+
+  const handleRename = async (id: string, previousName: string) => {
+    const name = editValue.trim();
+    if (!name || name === previousName) {
+      setEditingId(null);
+      return;
+    }
+    try {
+      await renameStaff.mutateAsync({ id, name, previousName });
+      toast.success("Staff renamed");
+      setEditingId(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to rename");
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Remove ${name} from the staff roster? They'll be unassigned from any departments they currently lead.`)) return;
+    try {
+      await deleteStaff.mutateAsync({ id, name });
+      toast.success(`Removed ${name}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove");
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      {list.map((w) => (
-        <div
-          key={w.id}
-          className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border"
-        >
-          <div className="min-w-0">
-            <div className="text-[13px] font-medium truncate">{w.name}</div>
-            <div className="text-[11px] text-muted-foreground">
-              Lead: {w.owner_name ?? "—"}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {pendingId === w.id && (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-            )}
-            <select
-              value={w.owner_name ?? ""}
-              onChange={(e) => handleChange(w.id, e.target.value)}
-              disabled={pendingId === w.id}
-              className="bg-surface border border-border rounded-md px-2 py-1.5 text-[12px] outline-none focus:border-primary/40 min-w-[180px] disabled:opacity-50"
+    <div className="space-y-5">
+      {/* Department leads */}
+      <div className="space-y-2">
+        <div className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Department leads</div>
+        {list.length === 0 ? (
+          <p className="text-[12px] text-muted-foreground">No departments found for this client yet.</p>
+        ) : (
+          list.map((w) => (
+            <div
+              key={w.id}
+              className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border"
             >
-              <option value="">— Unassigned —</option>
-              {STAFF_MEMBERS.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-              {w.owner_name && !STAFF_MEMBERS.includes(w.owner_name) && (
-                <option value={w.owner_name}>{w.owner_name} (current)</option>
-              )}
-            </select>
+              <div className="min-w-0">
+                <div className="text-[13px] font-medium truncate">{w.name}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  Lead: {w.owner_name ?? "—"}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {pendingId === w.id && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                )}
+                <select
+                  value={w.owner_name ?? ""}
+                  onChange={(e) => handleChange(w.id, e.target.value)}
+                  disabled={pendingId === w.id || loadingStaff}
+                  className="bg-surface border border-border rounded-md px-2 py-1.5 text-[12px] outline-none focus:border-primary/40 min-w-[180px] disabled:opacity-50"
+                >
+                  <option value="">— Unassigned —</option>
+                  {staffNames.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                  {w.owner_name && !staffNames.includes(w.owner_name) && (
+                    <option value={w.owner_name}>{w.owner_name} (legacy)</option>
+                  )}
+                </select>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Staff roster */}
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+            Staff roster {staff.length > 0 && <span className="text-muted-foreground/60">({staff.length})</span>}
           </div>
+          <div className="text-[10px] text-muted-foreground">Synced to database</div>
         </div>
-      ))}
-      <div className="p-3 rounded-lg border border-dashed border-border text-[11px] text-muted-foreground">
-        Staff roster ({STAFF_MEMBERS.length}): {STAFF_MEMBERS.join(", ")}
+
+        {/* Add */}
+        <div className="flex items-center gap-2">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+            placeholder="Add staff member…"
+            className="flex-1 bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!newName.trim() || addStaff.isPending}
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {addStaff.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            Add
+          </button>
+        </div>
+
+        {/* List */}
+        {loadingStaff ? (
+          <div className="flex items-center gap-2 text-[12px] text-muted-foreground py-3">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading roster…
+          </div>
+        ) : staff.length === 0 ? (
+          <p className="text-[12px] text-muted-foreground py-2">No staff yet — add the first one above.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {staff.map((s) => (
+              <div key={s.id} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border">
+                {editingId === s.id ? (
+                  <>
+                    <input
+                      autoFocus
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleRename(s.id, s.name);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      className="flex-1 bg-surface border border-border rounded px-2 py-1 text-[13px] outline-none focus:border-primary/40"
+                    />
+                    <button
+                      onClick={() => handleRename(s.id, s.name)}
+                      className="text-success hover:opacity-70"
+                      title="Save"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-muted-foreground hover:opacity-70"
+                      title="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 text-[13px] truncate">{s.name}</span>
+                    <button
+                      onClick={() => { setEditingId(s.id); setEditValue(s.name); }}
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Rename"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(s.id, s.name)}
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Remove"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-[11px] text-muted-foreground pt-1">
+          Changes save instantly to the database and propagate everywhere staff appear (department leads, action-item owners, coaching dropdowns).
+        </p>
       </div>
     </div>
   );

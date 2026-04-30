@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
 import { resolveWorkstreamOwner } from "./staff";
-import { isDevBypassHost, DEV_MOCK_CLIENTS } from "./dev-bypass";
+import { isDevBypassHost, DEV_MOCK_CLIENTS, DEV_MOCK_STAFF } from "./dev-bypass";
 import type {
   Client,
   Workstream,
@@ -12,6 +12,7 @@ import type {
   ActivityFeedItem,
   AiBrief,
   ClientIntegration,
+  Staff,
 } from "./types";
 
 // ─── CLIENTS ────────────────────────────────────────────────
@@ -405,6 +406,114 @@ export function useUpsertIntegration() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["integrations", data.client_id] });
+    },
+  });
+}
+
+// ─── STAFF ROSTER ──────────────────────────────────────────
+
+export function useStaff() {
+  return useQuery<Staff[]>({
+    queryKey: ["staff"],
+    queryFn: async () => {
+      if (isDevBypassHost()) return [...DEV_MOCK_STAFF].sort((a, b) => a.name.localeCompare(b.name));
+      const { data, error } = await supabase
+        .from("staff")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useAddStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error("Name is required");
+      if (isDevBypassHost()) {
+        const exists = DEV_MOCK_STAFF.some((s) => s.name.toLowerCase() === trimmed.toLowerCase());
+        if (exists) throw new Error("That staff member already exists");
+        const row: Staff = {
+          id: crypto.randomUUID(),
+          name: trimmed,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        DEV_MOCK_STAFF.push(row);
+        return row;
+      }
+      const { data, error } = await supabase
+        .from("staff")
+        .insert({ name: trimmed })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Staff;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+}
+
+export function useRenameStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, previousName }: { id: string; name: string; previousName: string }) => {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error("Name is required");
+      if (isDevBypassHost()) {
+        const idx = DEV_MOCK_STAFF.findIndex((s) => s.id === id);
+        if (idx >= 0) {
+          DEV_MOCK_STAFF[idx] = { ...DEV_MOCK_STAFF[idx], name: trimmed, updated_at: new Date().toISOString() };
+        }
+      } else {
+        const { error } = await supabase
+          .from("staff")
+          .update({ name: trimmed, updated_at: new Date().toISOString() })
+          .eq("id", id);
+        if (error) throw error;
+        // Cascade rename to any workstreams currently owned by this person.
+        const { error: wsErr } = await supabase
+          .from("workstreams")
+          .update({ owner_name: trimmed })
+          .eq("owner_name", previousName);
+        if (wsErr) throw wsErr;
+      }
+      return { id, name: trimmed, previousName };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff"] });
+      qc.invalidateQueries({ queryKey: ["workstreams"] });
+    },
+  });
+}
+
+export function useDeleteStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      if (isDevBypassHost()) {
+        const idx = DEV_MOCK_STAFF.findIndex((s) => s.id === id);
+        if (idx >= 0) DEV_MOCK_STAFF.splice(idx, 1);
+        return { id, name };
+      }
+      const { error } = await supabase.from("staff").delete().eq("id", id);
+      if (error) throw error;
+      // Unassign this person from any workstreams they currently lead.
+      const { error: wsErr } = await supabase
+        .from("workstreams")
+        .update({ owner_name: null })
+        .eq("owner_name", name);
+      if (wsErr) throw wsErr;
+      return { id, name };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff"] });
+      qc.invalidateQueries({ queryKey: ["workstreams"] });
     },
   });
 }
