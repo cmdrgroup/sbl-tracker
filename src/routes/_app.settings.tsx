@@ -546,6 +546,7 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
   const deleteStaff = useDeleteStaff();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [newDept, setNewDept] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
