@@ -570,8 +570,20 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
     if (!name) return;
     try {
       await addStaff.mutateAsync(name);
-      toast.success(`Added ${name}`);
+      if (newDept) {
+        try {
+          await updateWorkstream.mutateAsync({ id: newDept, patch: { owner_name: name } });
+          const deptName = list.find((w) => w.id === newDept)?.name ?? "department";
+          toast.success(`Added ${name} as lead of ${deptName}`);
+        } catch (deptErr) {
+          toast.success(`Added ${name}`);
+          toast.error(deptErr instanceof Error ? deptErr.message : "Couldn't assign department");
+        }
+      } else {
+        toast.success(`Added ${name}`);
+      }
       setNewName("");
+      setNewDept("");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add staff");
     }
