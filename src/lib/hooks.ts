@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
 import { resolveWorkstreamOwner } from "./staff";
-import { isDevBypassHost, DEV_MOCK_CLIENTS } from "./dev-bypass";
+import { isDevBypassHost, DEV_MOCK_CLIENTS, DEV_MOCK_STAFF } from "./dev-bypass";
 import type {
   Client,
   Workstream,
@@ -12,6 +12,7 @@ import type {
   ActivityFeedItem,
   AiBrief,
   ClientIntegration,
+  Staff,
 } from "./types";
 
 // ─── CLIENTS ────────────────────────────────────────────────
