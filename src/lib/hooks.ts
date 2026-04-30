@@ -99,6 +99,34 @@ export function useWorkstreams(clientId: string) {
   });
 }
 
+export function useUpdateWorkstream() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: Partial<Pick<Workstream, "name" | "owner_name" | "color" | "sort_order">>;
+    }) => {
+      const { data, error } = await supabase
+        .from("workstreams")
+        .update(patch)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Workstream;
+    },
+    onSuccess: (data) => {
+      qc.setQueryData<Workstream[]>(["workstreams", data.client_id], (old) =>
+        old?.map((w) => (w.id === data.id ? { ...w, ...data } : w)),
+      );
+      qc.invalidateQueries({ queryKey: ["workstreams", data.client_id] });
+    },
+  });
+}
+
 // ─── PLAYBOOKS ──────────────────────────────────────────────
 
 export function usePlaybooks(clientId: string) {
