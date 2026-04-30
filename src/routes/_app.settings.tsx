@@ -546,6 +546,7 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
   const deleteStaff = useDeleteStaff();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [newDept, setNewDept] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -569,8 +570,20 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
     if (!name) return;
     try {
       await addStaff.mutateAsync(name);
-      toast.success(`Added ${name}`);
+      if (newDept) {
+        try {
+          await updateWorkstream.mutateAsync({ id: newDept, patch: { owner_name: name } });
+          const deptName = list.find((w) => w.id === newDept)?.name ?? "department";
+          toast.success(`Added ${name} as lead of ${deptName}`);
+        } catch (deptErr) {
+          toast.success(`Added ${name}`);
+          toast.error(deptErr instanceof Error ? deptErr.message : "Couldn't assign department");
+        }
+      } else {
+        toast.success(`Added ${name}`);
+      }
       setNewName("");
+      setNewDept("");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add staff");
     }
@@ -656,14 +669,28 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
         </div>
 
         {/* Add */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
             placeholder="Add staff member…"
-            className="flex-1 bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
+            className="flex-1 min-w-[180px] bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
           />
+          <select
+            value={newDept}
+            onChange={(e) => setNewDept(e.target.value)}
+            disabled={list.length === 0}
+            title="Optionally assign as lead of a department"
+            className="bg-surface border border-border rounded-md px-2 py-1.5 text-[12px] outline-none focus:border-primary/40 min-w-[160px] disabled:opacity-50"
+          >
+            <option value="">— No department —</option>
+            {list.map((w) => (
+              <option key={w.id} value={w.id}>
+                Lead of {w.name}
+              </option>
+            ))}
+          </select>
           <button
             onClick={handleAdd}
             disabled={!newName.trim() || addStaff.isPending}
