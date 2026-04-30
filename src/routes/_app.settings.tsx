@@ -669,14 +669,28 @@ function TeamTab({ workstreams }: { workstreams: ReturnType<typeof useWorkstream
         </div>
 
         {/* Add */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
             placeholder="Add staff member…"
-            className="flex-1 bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
+            className="flex-1 min-w-[180px] bg-surface border border-border rounded-md px-3 py-1.5 text-[13px] outline-none focus:border-primary/40"
           />
+          <select
+            value={newDept}
+            onChange={(e) => setNewDept(e.target.value)}
+            disabled={list.length === 0}
+            title="Optionally assign as lead of a department"
+            className="bg-surface border border-border rounded-md px-2 py-1.5 text-[12px] outline-none focus:border-primary/40 min-w-[160px] disabled:opacity-50"
+          >
+            <option value="">— No department —</option>
+            {list.map((w) => (
+              <option key={w.id} value={w.id}>
+                Lead of {w.name}
+              </option>
+            ))}
+          </select>
           <button
             onClick={handleAdd}
             disabled={!newName.trim() || addStaff.isPending}
