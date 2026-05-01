@@ -353,6 +353,20 @@ export function useUpdateActionItem() {
   });
 }
 
+export function useDeleteActionItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, clientId }: { id: string; clientId: string }) => {
+      const { error } = await supabase.from("action_items").delete().eq("id", id);
+      if (error) throw error;
+      return { id, clientId };
+    },
+    onSuccess: ({ clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["action_items", clientId] });
+    },
+  });
+}
+
 // ─── ACTIVITY FEED ──────────────────────────────────────────
 
 export function useActivityFeed(clientId: string) {
