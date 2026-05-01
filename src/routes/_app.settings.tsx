@@ -50,7 +50,6 @@ function SettingsPage() {
   const { data: allClients = [] } = useClients();
   const upsertIntegration = useUpsertIntegration();
   const updateClient = useUpdateClient();
-  const queryClient = useQueryClient();
 
   const [workspaceForm, setWorkspaceForm] = useState({
     name: client.name,
@@ -60,6 +59,22 @@ function SettingsPage() {
     industry: client.industry ?? "",
     slug: client.slug,
   });
+
+  // Re-sync the form whenever the active client changes (e.g. user switches
+  // workspaces from the sidebar) or when the underlying client record is
+  // refreshed after a save. Without this the form keeps showing the previous
+  // workspace's name/slug.
+  useEffect(() => {
+    setWorkspaceForm({
+      name: client.name,
+      timezone: client.timezone ?? "Australia/Brisbane",
+      week_start: client.week_start ?? "Monday",
+      coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+      industry: client.industry ?? "",
+      slug: client.slug,
+    });
+  }, [client.id, client.name, client.timezone, client.week_start, client.coaching_cadence, client.industry, client.slug]);
+
   const dirty =
     workspaceForm.name !== client.name ||
     workspaceForm.timezone !== (client.timezone ?? "Australia/Brisbane") ||
@@ -79,25 +94,6 @@ function SettingsPage() {
 
   const setField = (key: keyof typeof workspaceForm) => (v: string) =>
     setWorkspaceForm((f) => ({ ...f, [key]: v }));
-
-  const existingDemos = allClients.filter((c) => isDemoClient(c.name));
-  const [demoName, setDemoName] = useState("Apex Demo Co");
-  const [seeding, setSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
-
-  const handleSeedDemo = async () => {
-    setSeeding(true);
-    setSeedMessage(null);
-    try {
-      const result = await seedDemoClient(demoName.trim() || "Apex Demo Co");
-      await queryClient.invalidateQueries({ queryKey: ["clients"] });
-      setSeedMessage({ kind: "success", text: `Created "${stripDemoPrefix(result.client_name)}". Switch to it from the client picker in the sidebar.` });
-    } catch (err) {
-      setSeedMessage({ kind: "error", text: err instanceof Error ? err.message : "Failed to create demo client." });
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   // Loom setup form state
   const [showLoomSetup, setShowLoomSetup] = useState(false);
