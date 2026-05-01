@@ -238,6 +238,66 @@ export function useCreateCoachingLog() {
   });
 }
 
+export function useUpdateCoachingLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      decisions,
+      ...patch
+    }: Partial<Omit<CoachingLog, "decisions">> & {
+      id: string;
+      decisions?: string[];
+    }) => {
+      const { data: logData, error: logError } = await supabase
+        .from("coaching_logs")
+        .update(patch)
+        .eq("id", id)
+        .select()
+        .single();
+      if (logError) throw logError;
+
+      // Replace decisions if provided (full overwrite)
+      if (decisions !== undefined) {
+        const { error: delErr } = await supabase
+          .from("coaching_decisions")
+          .delete()
+          .eq("coaching_log_id", id);
+        if (delErr) throw delErr;
+        const cleaned = decisions.map((d) => d.trim()).filter(Boolean);
+        if (cleaned.length) {
+          const { error: insErr } = await supabase
+            .from("coaching_decisions")
+            .insert(cleaned.map((d) => ({ coaching_log_id: id, decision: d })));
+          if (insErr) throw insErr;
+        }
+      }
+      return logData;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["coaching_logs", data.client_id] });
+    },
+  });
+}
+
+export function useDeleteCoachingLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, clientId }: { id: string; clientId: string }) => {
+      // Decisions and action_items.coaching_log_id should be set null/cascade by FK;
+      // explicitly clear decisions to be safe.
+      await supabase.from("coaching_decisions").delete().eq("coaching_log_id", id);
+      const { error } = await supabase.from("coaching_logs").delete().eq("id", id);
+      if (error) throw error;
+      return { id, clientId };
+    },
+    onSuccess: ({ clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["coaching_logs", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["action_items", clientId] });
+    },
+  });
+}
+
 // ─── ACTION ITEMS ───────────────────────────────────────────
 
 export function useActionItems(clientId: string) {
