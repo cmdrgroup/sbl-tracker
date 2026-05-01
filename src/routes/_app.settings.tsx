@@ -1,15 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Sparkles, Plus, Trash2, Pencil, Check } from "lucide-react";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Plus, Trash2, Pencil, Check } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
-import { useIntegrations, useUpsertIntegration, useWorkstreams, useClients, useUpdateClient, useUpdateWorkstream, useStaff, useAddStaff, useRenameStaff, useDeleteStaff } from "@/lib/hooks";
+import { useIntegrations, useUpsertIntegration, useWorkstreams, useUpdateClient, useUpdateWorkstream, useStaff, useAddStaff, useRenameStaff, useDeleteStaff } from "@/lib/hooks";
 import { toast } from "sonner";
-import { seedDemoClient, isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
-import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 const TABS = ["workspace", "team", "integrations", "notifications", "security"] as const;
@@ -49,10 +47,9 @@ function SettingsPage() {
   const navigate = Route.useNavigate();
   const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
-  const { data: allClients = [] } = useClients();
+  
   const upsertIntegration = useUpsertIntegration();
   const updateClient = useUpdateClient();
-  const queryClient = useQueryClient();
 
   const [workspaceForm, setWorkspaceForm] = useState({
     name: client.name,
@@ -62,6 +59,22 @@ function SettingsPage() {
     industry: client.industry ?? "",
     slug: client.slug,
   });
+
+  // Re-sync the form whenever the active client changes (e.g. user switches
+  // workspaces from the sidebar) or when the underlying client record is
+  // refreshed after a save. Without this the form keeps showing the previous
+  // workspace's name/slug.
+  useEffect(() => {
+    setWorkspaceForm({
+      name: client.name,
+      timezone: client.timezone ?? "Australia/Brisbane",
+      week_start: client.week_start ?? "Monday",
+      coaching_cadence: client.coaching_cadence ?? "Tuesdays · 7:00am",
+      industry: client.industry ?? "",
+      slug: client.slug,
+    });
+  }, [client.id, client.name, client.timezone, client.week_start, client.coaching_cadence, client.industry, client.slug]);
+
   const dirty =
     workspaceForm.name !== client.name ||
     workspaceForm.timezone !== (client.timezone ?? "Australia/Brisbane") ||
@@ -81,25 +94,6 @@ function SettingsPage() {
 
   const setField = (key: keyof typeof workspaceForm) => (v: string) =>
     setWorkspaceForm((f) => ({ ...f, [key]: v }));
-
-  const existingDemos = allClients.filter((c) => isDemoClient(c.name));
-  const [demoName, setDemoName] = useState("Apex Demo Co");
-  const [seeding, setSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
-
-  const handleSeedDemo = async () => {
-    setSeeding(true);
-    setSeedMessage(null);
-    try {
-      const result = await seedDemoClient(demoName.trim() || "Apex Demo Co");
-      await queryClient.invalidateQueries({ queryKey: ["clients"] });
-      setSeedMessage({ kind: "success", text: `Created "${stripDemoPrefix(result.client_name)}". Switch to it from the client picker in the sidebar.` });
-    } catch (err) {
-      setSeedMessage({ kind: "error", text: err instanceof Error ? err.message : "Failed to create demo client." });
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   // Loom setup form state
   const [showLoomSetup, setShowLoomSetup] = useState(false);
@@ -380,59 +374,6 @@ function SettingsPage() {
                   </div>
                 </form>
               )}
-            </Panel>
-          )}
-
-          {tab === "workspace" && (
-            <Panel title="Demo subaccount" subtitle="Spin up a fully-populated fictional client for sales screenshares">
-              <div className="space-y-4">
-                {existingDemos.length > 0 && (
-                  <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
-                    <div className="text-[11px] font-mono uppercase tracking-wider text-accent mb-1.5">Existing demos · {existingDemos.length}</div>
-                    <div className="space-y-1">
-                      {existingDemos.map((d) => (
-                        <div key={d.id} className="text-[12px] flex items-center gap-2">
-                          <Sparkles className="h-3 w-3 text-accent" />
-                          <span className="font-medium">{stripDemoPrefix(d.name)}</span>
-                          <span className="text-[10px] font-mono text-muted-foreground">· health {d.health_score}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-1 block">Company name</label>
-                  <input
-                    value={demoName}
-                    onChange={(e) => setDemoName(e.target.value)}
-                    placeholder="Apex Demo Co"
-                    className="w-full bg-surface border border-border rounded-md px-3 py-2 text-[13px] outline-none focus:border-primary/40"
-                  />
-                  <div className="text-[10px] text-muted-foreground mt-1">
-                    Builds a full demo: 7 departments, 10 SOPs across all stages, 3 Captain's Table logs with decisions, action items, and an activity feed. Tagged "[DEMO]" so you'll always know it isn't a real client.
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <button
-                    onClick={handleSeedDemo}
-                    disabled={seeding}
-                    className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50 flex items-center gap-2 self-start"
-                  >
-                    {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                    {seeding ? "Building demo..." : "Create demo client"}
-                  </button>
-                  {seedMessage && (
-                    <div className={cn(
-                      "text-[12px] flex-1",
-                      seedMessage.kind === "success" ? "text-success" : "text-destructive"
-                    )}>
-                      {seedMessage.text}
-                    </div>
-                  )}
-                </div>
-              </div>
             </Panel>
           )}
 
