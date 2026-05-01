@@ -47,7 +47,7 @@ function SettingsPage() {
   const navigate = Route.useNavigate();
   const { data: integrations = [], isLoading: loadingInt } = useIntegrations(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
-  const { data: allClients = [] } = useClients();
+  
   const upsertIntegration = useUpsertIntegration();
   const updateClient = useUpdateClient();
 
