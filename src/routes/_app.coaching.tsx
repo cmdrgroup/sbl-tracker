@@ -1,17 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Plus, Calendar, Loader2, X, PlusCircle, Trash2 } from "lucide-react";
+import { CheckCircle2, Plus, Calendar, Loader2, X, PlusCircle, Trash2, Pencil, Save } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import {
   useCoachingLogs,
   useCreateCoachingLog,
+  useUpdateCoachingLog,
+  useDeleteCoachingLog,
   useActionItems,
   useCreateActionItem,
   useUpdateActionItem,
+  useDeleteActionItem,
   useStaff,
 } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
 import { cn } from "@/lib/utils";
+import type { CoachingLog, ActionItem } from "@/lib/types";
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
