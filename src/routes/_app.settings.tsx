@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Plus, Trash2, Pencil, Check } from "lucide-react";
+import { Plug, Bell, Shield, Users, Command, CheckCircle2, X, ExternalLink, Loader2, Plus, Trash2, Pencil, Check } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
