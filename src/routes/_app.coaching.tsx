@@ -544,18 +544,24 @@ function SessionActions({
   logId,
   clientId,
   actions,
+  staffNames: staffNamesProp,
 }: {
   logId: string;
   clientId: string;
-  actions: ReturnType<typeof useActionItems>["data"] extends (infer T)[] | undefined ? T[] : never;
+  actions: ActionItem[];
+  staffNames?: string[];
 }) {
   const createAction = useCreateActionItem();
   const updateAction = useUpdateActionItem();
+  const deleteAction = useDeleteActionItem();
   const { data: staff = [] } = useStaff();
-  const staffNames = staff.map((s) => s.name);
+  const staffNames = staffNamesProp ?? staff.map((s) => s.name);
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState<string>("");
-  // Default to first staff member once loaded.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editOwner, setEditOwner] = useState("");
+
   useEffect(() => {
     if (!owner && staffNames.length > 0) setOwner(staffNames[0]);
   }, [owner, staffNames]);
@@ -582,6 +588,27 @@ function SessionActions({
     });
   };
 
+  const startEditAction = (a: ActionItem) => {
+    setEditingId(a.id);
+    setEditTitle(a.title);
+    setEditOwner(a.owner_name ?? "");
+  };
+
+  const saveEditAction = async () => {
+    if (!editingId || !editTitle.trim()) return;
+    await updateAction.mutateAsync({
+      id: editingId,
+      title: editTitle.trim(),
+      owner_name: editOwner || null,
+    });
+    setEditingId(null);
+  };
+
+  const removeAction = async (id: string) => {
+    if (!confirm("Delete this action item?")) return;
+    await deleteAction.mutateAsync({ id, clientId });
+  };
+
   return (
     <div className="border-t border-border pt-3">
       <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">
@@ -592,16 +619,50 @@ function SessionActions({
         <div className="space-y-1 mb-3">
           {actions.map((a) => (
             <div key={a.id} className="flex items-center gap-2 text-[12px]">
-              <input
-                type="checkbox"
-                checked={a.status === "done"}
-                onChange={() => toggle(a.id, a.status)}
-                className="accent-primary cursor-pointer"
-              />
-              <span className={cn("flex-1", a.status === "done" && "line-through text-muted-foreground")}>
-                {a.title}
-              </span>
-              <span className="text-[10px] font-mono text-muted-foreground shrink-0">{a.owner_name ?? "—"}</span>
+              {editingId === a.id ? (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className={cn(inputCls, "flex-1 text-[12px] py-1")}
+                  />
+                  <select
+                    value={editOwner}
+                    onChange={(e) => setEditOwner(e.target.value)}
+                    className={cn(inputCls, "w-36 text-[12px] py-1")}
+                  >
+                    <option value="">Unassigned</option>
+                    {staffNames.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  <button onClick={saveEditAction} className="text-success hover:text-success/80">
+                    <Save className="h-3.5 w-3.5" />
+                  </button>
+                  <button onClick={() => setEditingId(null)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="checkbox"
+                    checked={a.status === "done"}
+                    onChange={() => toggle(a.id, a.status)}
+                    className="accent-primary cursor-pointer"
+                  />
+                  <span className={cn("flex-1", a.status === "done" && "line-through text-muted-foreground")}>
+                    {a.title}
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0">{a.owner_name ?? "—"}</span>
+                  <button onClick={() => startEditAction(a)} className="text-muted-foreground hover:text-foreground opacity-60 hover:opacity-100">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => removeAction(a.id)} className="text-muted-foreground hover:text-destructive opacity-60 hover:opacity-100">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </>
+              )}
             </div>
           ))}
         </div>
