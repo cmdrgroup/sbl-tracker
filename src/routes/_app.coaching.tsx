@@ -311,69 +311,232 @@ function CoachingPage() {
             );
           })
           .map((log) => {
-          const moodKey = log.mood ?? "steady";
-          const moodInfo = MOOD[moodKey] ?? MOOD.steady;
           const sessionActions = actionItems.filter(
             (a) =>
               a.coaching_log_id === log.id &&
               (!ownerFilter || a.owner_name === ownerFilter),
           );
           return (
-            <Panel key={log.id}>
-              <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4 md:gap-6">
-                <div className="md:border-r md:border-border md:pr-6 pb-3 md:pb-0 border-b md:border-b-0 border-border">
-                  <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Week {log.week_number ?? "—"}</div>
-                  <div className="font-display text-[24px] md:text-[28px] font-semibold mt-1">{formatDate(log.session_date)}</div>
-                  <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider mt-3", moodInfo.cls)}>
-                    {moodInfo.label}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-3">
-                    <Calendar className="h-3 w-3" />
-                    <span className="truncate">{client.name}</span>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {log.brett_sitrep && (
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Brett's Sit-Rep</div>
-                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.brett_sitrep}</p>
-                    </div>
-                  )}
-                  {log.curtis_sitrep && (
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Curtis's Sit-Rep</div>
-                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.curtis_sitrep}</p>
-                    </div>
-                  )}
-                  {log.summary && (
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Discussion Notes</div>
-                      <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.summary}</p>
-                    </div>
-                  )}
-                  {(log.decisions?.length ?? 0) > 0 && (
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">Decisions Locked</div>
-                      <div className="space-y-1.5">
-                        {log.decisions!.map((d, i) => (
-                          <div key={d.id ?? i} className="flex items-start gap-2 text-[13px]">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
-                            <span>{d.decision}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action items for this session */}
-                  <SessionActions logId={log.id} clientId={client.id} actions={sessionActions} />
-                </div>
-              </div>
-            </Panel>
+            <SessionCard
+              key={log.id}
+              log={log}
+              clientId={client.id}
+              clientName={client.name}
+              actions={sessionActions}
+              staffNames={staffNames}
+            />
           );
         })}
       </div>
     </div>
+  );
+}
+
+function SessionCard({
+  log,
+  clientId,
+  clientName,
+  actions,
+  staffNames,
+}: {
+  log: CoachingLog;
+  clientId: string;
+  clientName: string;
+  actions: ActionItem[];
+  staffNames: string[];
+}) {
+  const updateLog = useUpdateCoachingLog();
+  const deleteLog = useDeleteCoachingLog();
+  const [editing, setEditing] = useState(false);
+  const [eDate, setEDate] = useState(log.session_date);
+  const [eWeek, setEWeek] = useState(log.week_number != null ? String(log.week_number) : "");
+  const [eMood, setEMood] = useState<string>(log.mood ?? "steady");
+  const [eBrett, setEBrett] = useState(log.brett_sitrep ?? "");
+  const [eCurtis, setECurtis] = useState(log.curtis_sitrep ?? "");
+  const [eSummary, setESummary] = useState(log.summary ?? "");
+  const [eDecisions, setEDecisions] = useState<string[]>(
+    (log.decisions ?? []).map((d) => d.decision).length
+      ? (log.decisions ?? []).map((d) => d.decision)
+      : [""],
+  );
+
+  const startEdit = () => {
+    setEDate(log.session_date);
+    setEWeek(log.week_number != null ? String(log.week_number) : "");
+    setEMood(log.mood ?? "steady");
+    setEBrett(log.brett_sitrep ?? "");
+    setECurtis(log.curtis_sitrep ?? "");
+    setESummary(log.summary ?? "");
+    setEDecisions(
+      (log.decisions ?? []).map((d) => d.decision).length
+        ? (log.decisions ?? []).map((d) => d.decision)
+        : [""],
+    );
+    setEditing(true);
+  };
+
+  const save = async () => {
+    await updateLog.mutateAsync({
+      id: log.id,
+      session_date: eDate,
+      week_number: eWeek ? Number(eWeek) : null,
+      mood: eMood as CoachingLog["mood"],
+      summary: eSummary || null,
+      brett_sitrep: eBrett || null,
+      curtis_sitrep: eCurtis || null,
+      decisions: eDecisions,
+    });
+    setEditing(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this coaching session and all its decisions? Action items will be kept.")) return;
+    await deleteLog.mutateAsync({ id: log.id, clientId });
+  };
+
+  const moodKey = log.mood ?? "steady";
+  const moodInfo = MOOD[moodKey] ?? MOOD.steady;
+
+  if (editing) {
+    return (
+      <Panel>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="text-[13px] font-semibold">Edit Session</div>
+            <button onClick={() => setEditing(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className={labelCls}>Date</label>
+              <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Week #</label>
+              <input type="number" value={eWeek} onChange={(e) => setEWeek(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Mood</label>
+              <select value={eMood} onChange={(e) => setEMood(e.target.value)} className={inputCls}>
+                <option value="strong">Strong</option>
+                <option value="steady">Steady</option>
+                <option value="flat">Flat</option>
+                <option value="under_pressure">Under Pressure</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Brett's Sit-Rep</label>
+              <textarea value={eBrett} onChange={(e) => setEBrett(e.target.value)} rows={4} className={cn(inputCls, "resize-y")} />
+            </div>
+            <div>
+              <label className={labelCls}>Curtis's Sit-Rep</label>
+              <textarea value={eCurtis} onChange={(e) => setECurtis(e.target.value)} rows={4} className={cn(inputCls, "resize-y")} />
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Discussion Notes</label>
+            <textarea value={eSummary} onChange={(e) => setESummary(e.target.value)} rows={3} className={cn(inputCls, "resize-y")} />
+          </div>
+          <div>
+            <label className={labelCls}>Decisions</label>
+            <div className="space-y-2">
+              {eDecisions.map((d, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={d}
+                    onChange={(e) => {
+                      const next = [...eDecisions];
+                      next[i] = e.target.value;
+                      setEDecisions(next);
+                    }}
+                    placeholder={`Decision ${i + 1}`}
+                    className={cn(inputCls, "flex-1")}
+                  />
+                  <button type="button" onClick={() => setEDecisions(eDecisions.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+              <button type="button" onClick={() => setEDecisions([...eDecisions, ""])} className="flex items-center gap-1 text-[11px] text-primary hover:underline">
+                <PlusCircle className="h-3 w-3" /> Add decision
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <button onClick={save} disabled={updateLog.isPending} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50 flex items-center gap-1.5">
+              <Save className="h-3.5 w-3.5" /> {updateLog.isPending ? "Saving..." : "Save changes"}
+            </button>
+            <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">Cancel</button>
+            <button onClick={handleDelete} disabled={deleteLog.isPending} className="ml-auto px-3 py-2 rounded-md text-destructive border border-destructive/30 hover:bg-destructive/10 text-[12px] flex items-center gap-1.5 disabled:opacity-50">
+              <Trash2 className="h-3.5 w-3.5" /> Delete session
+            </button>
+            {updateLog.isError && <span className="text-[11px] text-destructive">{(updateLog.error as Error).message}</span>}
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel>
+      <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4 md:gap-6">
+        <div className="md:border-r md:border-border md:pr-6 pb-3 md:pb-0 border-b md:border-b-0 border-border">
+          <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Week {log.week_number ?? "—"}</div>
+          <div className="font-display text-[24px] md:text-[28px] font-semibold mt-1">{formatDate(log.session_date)}</div>
+          <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border font-mono uppercase tracking-wider mt-3", moodInfo.cls)}>
+            {moodInfo.label}
+          </span>
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-3">
+            <Calendar className="h-3 w-3" />
+            <span className="truncate">{clientName}</span>
+          </div>
+          <button
+            onClick={startEdit}
+            className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-3 w-3" /> Edit
+          </button>
+        </div>
+        <div className="space-y-4">
+          {log.brett_sitrep && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Brett's Sit-Rep</div>
+              <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.brett_sitrep}</p>
+            </div>
+          )}
+          {log.curtis_sitrep && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Curtis's Sit-Rep</div>
+              <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.curtis_sitrep}</p>
+            </div>
+          )}
+          {log.summary && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1.5">Discussion Notes</div>
+              <p className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap">{log.summary}</p>
+            </div>
+          )}
+          {(log.decisions?.length ?? 0) > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">Decisions Locked</div>
+              <div className="space-y-1.5">
+                {log.decisions!.map((d, i) => (
+                  <div key={d.id ?? i} className="flex items-start gap-2 text-[13px]">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
+                    <span>{d.decision}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <SessionActions logId={log.id} clientId={clientId} actions={actions} staffNames={staffNames} />
+        </div>
+      </div>
+    </Panel>
   );
 }
 
