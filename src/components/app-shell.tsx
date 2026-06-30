@@ -192,7 +192,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-[260px] border-r border-border bg-surface/40 flex-col shrink-0">
+      <aside className="hidden md:flex w-[260px] border-r border-border bg-surface flex-col shrink-0">
         {sidebar}
       </aside>
 

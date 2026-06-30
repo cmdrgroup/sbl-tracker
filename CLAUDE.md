@@ -68,18 +68,17 @@ npm run build                            # -> dist/client (static SPA) + dist/se
 
 ## Branding — CMDR Group Design System (doctrine)
 `src/styles.css` follows the canonical CMDR Design System (mirror: `../cmdr-command-centre/lib/design/tokens.ts`;
-canonical source `CMDR-Operations/CMDR Group Design System/`). Rules: fonts **Barlow Condensed**
-(display, UPPERCASE wide tracking) / **Barlow** (body) / **JetBrains Mono** (data); palette
+canonical source `CMDR-Operations/CMDR Group Design System/`). Rules: fonts **Bebas Neue** (display, UPPERCASE — matches TOC) / **Barlow** (body) /
+**JetBrains Mono** (data); palette
 command-black `#0A0A0A`, command-gold `#C4A04F`, warning-red `#C12E27`, steel-white `#E4E4E7`,
 gunmetal `#2D2D2F`, slate-grey `#8B8B90`, field-green `#2B4F17`. **No gradients, no
 glassmorphism/backdrop-blur, no soft/glow shadows, radius ≤ 8px (6px default), no pills, UPPERCASE
 headings.** `.glass`/`.gradient-text` are redefined flat so consumers stay doctrine-compliant.
 
-**Known ecosystem inconsistency (pending alignment decision):** `cmdr-command-centre/lib/design/tokens.ts`
-specifies **Barlow Condensed** for display (what Overlay uses now), while **TOC uses Bebas Neue** for
-headings *and* a 3-tier surface layering (page `#0A0A0A` / chrome `#161618` / card `#1E1E20`). Overlay
-currently uses a flatter 2-tier surface. To match TOC exactly, switch display → Bebas Neue and add the
-`#161618` chrome layer for sidebar/topbar. Not yet done — confirm with Curtis.
+**Surface layering (matches TOC — 3-tier):** page `#0A0A0A` (`bg-background`) → chrome `#161618`
+(`bg-surface` — sidebar/topbar) → card `#1E1E20` (`bg-card` — panels). Inputs use `bg-surface`, so
+they read as dark insets on cards. Display font is **Bebas Neue** to match TOC exactly. (Note:
+`cmdr-command-centre`'s tokens.ts still lists Barlow Condensed — TOC/Bebas is the chosen standard.)
 
 ## Branch / Lovable sync
 - Work lands directly on **`main`**, and **Vercel auto-deploys `main`** to `app.commandoverlay.com`

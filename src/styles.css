@@ -4,14 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* CMDR Group Design System fonts — Barlow Condensed (display), Barlow (body),
-   JetBrains Mono (data). Canonical: cmdr-command-centre/lib/design/tokens.ts. */
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* CMDR Group Design System fonts — Bebas Neue (display, matches TOC), Barlow (body),
+   JetBrains Mono (data). */
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @theme inline {
   --font-sans: "Barlow", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-display: "Barlow Condensed", "Oswald", Impact, sans-serif;
+  --font-display: "Bebas Neue", "Oswald", Impact, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -58,8 +58,8 @@
   --background: #0A0A0A;          /* command-black */
   --foreground: #E4E4E7;          /* steel-white */
 
-  --surface: #1E1E20;             /* tactical-steel */
-  --surface-elevated: #242426;
+  --surface: #161618;             /* tactical-chrome — sidebar/topbar (TOC 3-tier) */
+  --surface-elevated: #1E1E20;    /* card-level lifted chrome */
 
   --card: #1E1E20;                /* tactical-steel */
   --card-foreground: #E4E4E7;
@@ -133,7 +133,7 @@
   /* Doctrine: no glassmorphism. `glass` is a solid tactical-steel panel so any
      existing consumer renders as a flat bordered surface (no backdrop-blur). */
   .glass {
-    background: var(--color-surface);
+    background: var(--color-card);
     border: 1px solid var(--color-border);
   }
   /* Doctrine: no gradient text. Render flat command-gold. */
