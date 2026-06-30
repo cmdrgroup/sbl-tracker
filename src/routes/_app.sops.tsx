@@ -480,7 +480,10 @@ function SopsPage() {
                               <div className="text-[12px] font-medium mt-0.5 leading-snug">{s.title}</div>
                               <div className="flex items-center justify-between mt-2 text-[10px]">
                                 <span className="text-muted-foreground">{(s.owner_name ?? "").split(" ")[0]}</span>
-                                {s.loom_duration_min && <span className="font-mono text-primary">▶ {s.loom_duration_min}m</span>}
+                                <span className="flex items-center gap-1.5 font-mono text-primary">
+                                  {s.scribe_url && <span>Scribe</span>}
+                                  {s.loom_duration_min && <span>▶ {s.loom_duration_min}m</span>}
+                                </span>
                               </div>
                             </button>
                           </div>

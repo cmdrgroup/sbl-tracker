@@ -28,7 +28,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const [selectedSopId, setSelectedSopId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [loomUrl, setLoomUrl] = useState("");
-  
+  const [scribeUrl, setScribeUrl] = useState("");
   const [justSaved, setJustSaved] = useState(false);
 
   // Build deduped name list from workstream owners + existing playbook owners
@@ -64,27 +64,27 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
     setSelectedSopId("");
     setTitle("");
     setLoomUrl("");
-    
+    setScribeUrl("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!owner || !loomUrl) return;
+    if (!owner || (!loomUrl && !scribeUrl)) return;
 
     if (selectedSop && !isNewSop) {
-      // Attach Loom to an existing SOP
+      // Attach a recording (Loom and/or Scribe) to an existing SOP
       await updatePlaybook.mutateAsync({
         id: selectedSop.id,
         status: "submitted",
-        loom_url: loomUrl,
-        loom_duration_min: null,
+        loom_url: loomUrl || selectedSop.loom_url || null,
+        scribe_url: scribeUrl || selectedSop.scribe_url || null,
         owner_name: selectedSop.owner_name ?? owner,
       });
       const label = selectedSop.code
         ? `${selectedSop.code} · ${selectedSop.title}`
         : selectedSop.title;
       toast.success("SOP updated", {
-        description: `Loom attached to ${label}.`,
+        description: `Recording attached to ${label}.`,
       });
     } else {
       // Brand-new SOP
@@ -97,8 +97,9 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         workstream_id: inferredWorkstreamId,
         type: "sop",
         status: "submitted",
-        loom_url: loomUrl,
+        loom_url: loomUrl || null,
         loom_duration_min: null,
+        scribe_url: scribeUrl || null,
         notes: null,
       });
       toast.success("New SOP created", {
@@ -180,26 +181,28 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
       )}
 
       <div>
-        <label className={labelCls}>Loom URL *</label>
+        <label className={labelCls}>Loom URL</label>
         <input
-          required
           type="url"
           value={loomUrl}
           onChange={(e) => setLoomUrl(e.target.value)}
           placeholder="https://loom.com/..."
           className={inputCls}
         />
+      </div>
+
+      <div>
+        <label className={labelCls}>Scribe URL</label>
+        <input
+          type="url"
+          value={scribeUrl}
+          onChange={(e) => setScribeUrl(e.target.value)}
+          placeholder="https://scribehow.com/shared/..."
+          className={inputCls}
+        />
         <p className="text-[11px] text-muted-foreground mt-1">
-          💡 Tip: install the{" "}
-          <a
-            href="https://chromewebstore.google.com/detail/loom-screen-recorder-scre/liecbddmkiiihnedobmlmillhodjkdmb"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            Loom Chrome extension
-          </a>{" "}
-          to record &amp; paste in one click — no tab switching.
+          Paste a Loom or Scribe link — at least one. Recorded in Scribe? Hit{" "}
+          <span className="text-foreground">Share → Copy link</span> and drop it here.
         </p>
       </div>
 
@@ -212,7 +215,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
             createPlaybook.isPending ||
             updatePlaybook.isPending ||
             !owner ||
-            !loomUrl ||
+            (!loomUrl && !scribeUrl) ||
             !selectedSopId ||
             (isNewSop && !title)
           }

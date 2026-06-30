@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useUpdatePlaybook } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import type { Playbook, Workstream } from "@/lib/types";
-import { Loader2, Play, MessageSquare, ArrowRight } from "lucide-react";
+import { Loader2, Play, MessageSquare, ArrowRight, FileText } from "lucide-react";
 
 const STATUS_LABEL: Record<Playbook["status"], string> = {
   not_started: "Not Started",
@@ -38,6 +38,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
   const [type, setType] = useState<Playbook["type"]>("sop");
   const [loomUrl, setLoomUrl] = useState("");
   const [loomMin, setLoomMin] = useState("");
+  const [scribeUrl, setScribeUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
 
@@ -47,6 +48,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
     setType(sop.type);
     setLoomUrl(sop.loom_url ?? "");
     setLoomMin(sop.loom_duration_min?.toString() ?? "");
+    setScribeUrl(sop.scribe_url ?? "");
     setNotes(sop.notes ?? "");
     setSaved(false);
   }, [sop?.id]);
@@ -67,6 +69,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
       type,
       loom_url: loomUrl || null,
       loom_duration_min: loomMin ? Number(loomMin) : null,
+      scribe_url: scribeUrl || null,
       notes: notes || null,
     });
     onClose();
@@ -79,6 +82,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
       type,
       loom_url: loomUrl || null,
       loom_duration_min: loomMin ? Number(loomMin) : null,
+      scribe_url: scribeUrl || null,
       notes: notes || null,
     });
     setSaved(true);
@@ -130,6 +134,9 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
                 <Field label="Duration (min)">
                   <input type="number" value={loomMin} onChange={(e) => setLoomMin(e.target.value)} placeholder="12" className={inputCls} />
                 </Field>
+                <Field label="Scribe URL" full>
+                  <input value={scribeUrl} onChange={(e) => setScribeUrl(e.target.value)} placeholder="https://scribehow.com/shared/..." className={inputCls} />
+                </Field>
               </FieldGrid>
 
               <Field label="Notes / written steps" full>
@@ -155,7 +162,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
           {/* ── SUBMITTED → view-only ── */}
           {isSubmitted && (
             <>
-              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
+              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} scribeUrl={sop.scribe_url} notes={sop.notes} />
               <div className="flex items-center gap-2 pt-2 border-t border-border">
                 <button onClick={() => transitionTo("not_started")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
                   ← Back to Not Started
@@ -170,7 +177,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
           {/* ── IN REVIEW / REFINED → view + inline notes ── */}
           {isReviewStage && (
             <>
-              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
+              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} scribeUrl={sop.scribe_url} notes={sop.notes} />
 
               <Field label={<span className="inline-flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Review notes / refinements</span>} full>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="Add inline comments, refinements or feedback…" className={cn(inputCls, "min-h-[120px] resize-y")} />
@@ -207,7 +214,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
           {/* ── APPROVED → view-only locked ── */}
           {isApproved && (
             <>
-              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} notes={sop.notes} />
+              <ContentView code={sop.code} type={sop.type} loomUrl={sop.loom_url} loomMin={sop.loom_duration_min} scribeUrl={sop.scribe_url} notes={sop.notes} />
               <div className="flex items-center gap-2 pt-2 border-t border-border">
                 <button onClick={() => transitionTo("refined")} disabled={updatePlaybook.isPending} className="px-3 py-2 rounded-md bg-secondary/60 border border-border text-[12px]">
                   ← Back to Refined
@@ -239,7 +246,7 @@ function Field({ label, children, full }: { label: React.ReactNode; children: Re
   );
 }
 
-function ContentView({ code, type, loomUrl, loomMin, notes }: { code: string | null; type: string; loomUrl: string | null; loomMin: number | null; notes: string | null }) {
+function ContentView({ code, type, loomUrl, loomMin, scribeUrl, notes }: { code: string | null; type: string; loomUrl: string | null; loomMin: number | null; scribeUrl?: string | null; notes: string | null }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3 text-[12px]">
@@ -256,6 +263,12 @@ function ContentView({ code, type, loomUrl, loomMin, notes }: { code: string | n
         <a href={loomUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-2 rounded-md bg-primary/10 border border-primary/30 text-primary text-[12px] hover:bg-primary/15">
           <Play className="h-3.5 w-3.5" />
           Watch Loom {loomMin && <span className="font-mono ml-auto">{loomMin}m</span>}
+        </a>
+      )}
+      {scribeUrl && (
+        <a href={scribeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-2 rounded-md bg-primary/10 border border-primary/30 text-primary text-[12px] hover:bg-primary/15">
+          <FileText className="h-3.5 w-3.5" />
+          Open Scribe SOP
         </a>
       )}
       <div>

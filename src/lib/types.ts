@@ -52,6 +52,7 @@ export type Playbook = {
   owner_name: string | null;
   loom_url: string | null;
   loom_duration_min: number | null;
+  scribe_url?: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
