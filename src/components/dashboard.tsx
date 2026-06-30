@@ -208,8 +208,8 @@ export function Dashboard({ client }: Props) {
             <span>·</span>
             <span>{latestLog ? `Week ${latestLog.week_number ?? "—"}` : "—"}</span>
           </div>
-          <h1 className="font-display text-[22px] sm:text-[28px] md:text-[34px] font-semibold tracking-tight leading-tight">
-            Good morning, Curtis. <span className="text-muted-foreground italic">Here's where {client.name} stands.</span>
+          <h1 className="text-[22px] sm:text-[26px] md:text-[30px] font-medium tracking-tight leading-tight">
+            Good morning, Curtis. <span className="text-muted-foreground">Here's where {client.name} stands.</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -330,7 +330,7 @@ export function Dashboard({ client }: Props) {
                   className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3 rounded-md px-1 -mx-1 py-1 hover:bg-secondary/40 transition-colors"
                 >
                   <div className="min-w-0">
-                    <div className="text-[12px] sm:text-[13px] font-medium truncate">{d.name}</div>
+                    <div className="text-[12px] sm:text-[13px] truncate">{d.name}</div>
                     <div className="text-[10px] text-muted-foreground truncate">{d.owner}</div>
                   </div>
                   <div className="space-y-1 min-w-0">
@@ -348,7 +348,7 @@ export function Dashboard({ client }: Props) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[14px] sm:text-[15px] font-semibold tabular-nums">{pct}<span className="text-[11px] text-muted-foreground">%</span></div>
+                    <div className="text-[14px] sm:text-[15px] font-medium tabular-nums">{pct}<span className="text-[11px] text-muted-foreground">%</span></div>
                   </div>
                 </Link>
               );
