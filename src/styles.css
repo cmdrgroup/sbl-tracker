@@ -4,12 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap");
+/* CMDR Group Brand Doctrine fonts: Bebas Neue (display), Barlow (body), JetBrains Mono (data). */
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @theme inline {
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Barlow", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-display: "Playfair Display", Georgia, serif;
+  --font-display: "Bebas Neue", "Oswald", Impact, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -51,58 +52,56 @@
 :root {
   --radius: 0.75rem;
 
-  /* CMDR Noir & Gold */
-  --background: oklch(0.13 0.003 60);
-  --foreground: oklch(0.93 0.005 80);
+  /* CMDR Doctrine palette — canonical hex from CMDR brand doctrine (matches TOC). */
+  --background: #0A0A0A;          /* command-black */
+  --foreground: #E4E4E7;          /* steel-white */
 
-  --surface: oklch(0.165 0.004 60);
-  --surface-elevated: oklch(0.20 0.005 60);
+  --surface: #141416;
+  --surface-elevated: #1E1E20;    /* tactical-fill */
 
-  --card: oklch(0.165 0.004 60);
-  --card-foreground: oklch(0.93 0.005 80);
-  --popover: oklch(0.155 0.004 60);
-  --popover-foreground: oklch(0.93 0.005 80);
+  --card: #1E1E20;                /* tactical-fill */
+  --card-foreground: #E4E4E7;
+  --popover: #18181A;
+  --popover-foreground: #E4E4E7;
 
-  /* Gold #C4A04F */
-  --primary: oklch(0.72 0.105 80);
-  --primary-foreground: oklch(0.13 0.003 60);
+  --primary: #C4A04F;             /* command-gold */
+  --primary-foreground: #0A0A0A;
 
-  --secondary: oklch(0.22 0.004 60);
-  --secondary-foreground: oklch(0.93 0.005 80);
+  --secondary: #2D2D2F;           /* gunmetal */
+  --secondary-foreground: #E4E4E7;
 
-  --muted: oklch(0.20 0.004 60);
-  --muted-foreground: oklch(0.65 0.012 75);
+  --muted: #242426;
+  --muted-foreground: #8B8B90;    /* slate-grey */
 
-  /* Accent red #C12E27 */
-  --accent: oklch(0.55 0.20 28);
-  --accent-foreground: oklch(0.97 0 0);
+  --accent: #C12E27;              /* warning-red */
+  --accent-foreground: #F4F4F5;
 
-  --destructive: oklch(0.55 0.20 28);
-  --destructive-foreground: oklch(0.97 0 0);
+  --destructive: #C12E27;         /* warning-red */
+  --destructive-foreground: #F4F4F5;
 
-  --success: oklch(0.68 0.13 145);
-  --warning: oklch(0.78 0.14 80);
-  --info: oklch(0.70 0.10 220);
+  --success: #2B4F17;             /* field-green */
+  --warning: #C4A04F;             /* command-gold (doctrine: amber → gold) */
+  --info: #4A5568;                /* tactical-steel */
 
-  --border: oklch(0.26 0.005 60);
-  --input: oklch(0.22 0.005 60);
-  --ring: oklch(0.72 0.105 80);
+  --border: #2D2D2F;              /* gunmetal */
+  --input: #2D2D2F;
+  --ring: #C4A04F;                /* command-gold */
 
-  --chart-1: oklch(0.72 0.105 80);
-  --chart-2: oklch(0.55 0.20 28);
-  --chart-3: oklch(0.68 0.13 145);
-  --chart-4: oklch(0.78 0.14 80);
-  --chart-5: oklch(0.65 0.012 75);
+  --chart-1: #C4A04F;             /* command-gold */
+  --chart-2: #C12E27;             /* warning-red */
+  --chart-3: #2B4F17;             /* field-green */
+  --chart-4: #4A5568;             /* tactical-steel */
+  --chart-5: #8B8B90;             /* slate-grey */
 
-  --gradient-primary: linear-gradient(135deg, oklch(0.72 0.105 80), oklch(0.62 0.115 70));
-  --gradient-glow: radial-gradient(circle at 50% 0%, oklch(0.72 0.105 80 / 0.18), transparent 70%);
-  --shadow-glow: 0 0 40px oklch(0.72 0.105 80 / 0.25);
-  --shadow-elevated: 0 20px 60px -20px oklch(0 0 0 / 0.7);
+  --gradient-primary: linear-gradient(135deg, #C4A04F, #A8863B);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(196, 160, 79, 0.18), transparent 70%);
+  --shadow-glow: 0 0 40px rgba(196, 160, 79, 0.25);
+  --shadow-elevated: 0 20px 60px -20px rgba(0, 0, 0, 0.7);
 }
 
 .dark {
-  --background: oklch(0.13 0.003 60);
-  --foreground: oklch(0.93 0.005 80);
+  --background: #0A0A0A;
+  --foreground: #E4E4E7;
 }
 
 @layer base {
@@ -119,7 +118,7 @@
   }
 
   ::selection {
-    background-color: oklch(0.72 0.105 80 / 0.3);
+    background-color: rgba(196, 160, 79, 0.3);
   }
 }
 
@@ -129,21 +128,21 @@
   }
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
   }
   .glass {
-    background: oklch(0.16 0.004 60 / 0.75);
+    background: rgba(20, 20, 22, 0.75);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid oklch(1 0 0 / 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
   .gradient-text {
-    background: linear-gradient(135deg, oklch(0.82 0.10 80), oklch(0.65 0.115 70));
+    background: linear-gradient(135deg, #D8BC79, #A8863B);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: oklch(0.30 0.005 60); border-radius: 3px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #2D2D2F; border-radius: 3px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
