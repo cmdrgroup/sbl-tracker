@@ -149,13 +149,13 @@
    flattens the dark theme to clean black-on-white. */
 @media print {
   :root { color-scheme: light; }
-  body { background: #fff !important; color: #000 !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  /* The app-shell wrapper divs (bg-background/bg-surface) sit ABOVE .print-doc,
+     so flatten every element's fill — otherwise the dark theme prints as a black
+     page. Chrome (aside/header) is hidden separately. */
+  body * { background: transparent !important; box-shadow: none !important; }
   aside, header, .no-print { display: none !important; }
   .print-doc { padding: 0 !important; max-width: none !important; }
-  .print-doc * {
-    background: transparent !important;
-    color: #000 !important;
-    border-color: #d1d5db !important;
-  }
+  .print-doc, .print-doc * { color: #000 !important; border-color: #d1d5db !important; }
   .print-doc a { color: #000 !important; text-decoration: underline; }
 }
