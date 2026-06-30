@@ -56,6 +56,17 @@ npm run build                            # -> dist/client (static SPA) + dist/se
 - Keep `ARCHITECTURE.md` updated **in the same commit** as code/convention changes (CMDR house
   rule, so Viktor/Claude read current truth from GitHub).
 
+## Branding — CMDR Group Design System (doctrine)
+`src/styles.css` follows the canonical CMDR Design System (mirror: `../cmdr-command-centre/lib/design/tokens.ts`;
+canonical source `CMDR-Operations/CMDR Group Design System/`). Rules: fonts **Barlow Condensed**
+(display, UPPERCASE wide tracking) / **Barlow** (body) / **JetBrains Mono** (data); palette
+command-black `#0A0A0A`, command-gold `#C4A04F`, warning-red `#C12E27`, steel-white `#E4E4E7`,
+gunmetal `#2D2D2F`, slate-grey `#8B8B90`, field-green `#2B4F17`. **No gradients, no
+glassmorphism/backdrop-blur, no soft/glow shadows, radius ≤ 8px (6px default), no pills, UPPERCASE
+headings.** `.glass`/`.gradient-text` are redefined flat so consumers stay doctrine-compliant.
+Matches TOC (note: TOC's index.css currently uses Bebas Neue for display — Barlow Condensed is the
+canonical choice).
+
 ## Branch / Lovable sync
 - `main` mirrors Lovable's two-way GitHub sync (commits by `lovable-dev[bot]`).
 - Migration work is on branch **`claude-code/vercel-migration`** (Vercel config + these docs).
