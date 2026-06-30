@@ -23,14 +23,19 @@ CMDR data is deliberately **NOT unified** across Supabase projects. TOC already 
 **bridge, not merge** pattern (e.g. `seed-dossier-from-cmdr-central` edge fn reads CMDR-Central
 into TOC). The integration should follow that precedent, **not** pull everything into one DB.
 
-## First questions to settle (need Curtis)
-1. **Identity mapping** — is a Command Overlay `client` the same population as a TOC `member`,
-   or different audiences? Integration needs a stable key (e.g. add `toc_member_id` to
-   `clients`, or map by slug/email). *This is the crux.*
-2. **Direction** — Command Overlay → TOC only (push progress up), or also TOC → Command Overlay?
-3. **What TOC actually needs** — likely: playbook pipeline status/% per client, latest coaching
-   summary + decisions, open action-item counts, health_score. A rollup, not raw rows.
-4. **Cadence** — on-change (webhook/trigger) vs scheduled nightly rollup.
+## Questions to settle
+1. **Identity mapping — RESOLVED (Curtis, 2026-07-01):** every Command Overlay `client` must
+   also exist as a TOC `member`, so Curtis can manage/coach them centrally from TOC. So the
+   integration **provisions/links a TOC member per CO client** and the CO client is the source
+   for that member's delivery-tracking data. Mechanism: add `toc_member_id uuid` to CO `clients`;
+   on client create (or first sync) ensure a matching TOC `members` row exists and store its id.
+2. **Direction** — primary flow is **Command Overlay → TOC** (push client/delivery status up so
+   it appears on the TOC member). TOC → CO not needed initially. *(confirm)*
+3. **What TOC needs from each CO client** — proposed rollup: playbook pipeline status/% ,
+   latest coaching summary + decisions, open action-item count, `health_score`, workstreams.
+   *(confirm the exact fields)*
+4. **Cadence** — on-change (webhook/trigger) vs scheduled nightly rollup. *(recommend: start
+   nightly, add on-change later)*
 
 ## Options (lowest → highest coupling)
 - **A. Scheduled bridge edge function (recommended).** A TOC-side edge fn (cron) reads Command
@@ -43,14 +48,19 @@ into TOC). The integration should follow that precedent, **not** pull everything
   a webhook that posts to a TOC ingest edge fn. Real-time; more moving parts.
 - **D. Merge schemas.** ❌ Against the locked "no unification" decision.
 
-## Suggested first slice (after Q1–Q4 answered)
-1. Add `toc_member_id uuid` to Command Overlay `clients` (nullable; manual map for the 2 clients).
-2. TOC edge fn `sync-overlay-status` (cron, daily): for each mapped member, pull
-   `{playbooks by status, latest coaching_log summary+decisions, open action_items count,
-   health_score}` and upsert into a new `overlay_client_status` row keyed by `member_id`.
-3. Surface it in the TOC member view as an "Overlay" panel.
+## Suggested first slice (Q1 resolved; confirm Q2–Q4)
+1. **Provision link.** Add `toc_member_id uuid` to Command Overlay `clients`. For each CO client,
+   ensure a TOC `members` row exists (match by email/slug, else create) and store its id.
+   Backfill the current 2 clients manually.
+2. **Rollup sync.** TOC edge fn `sync-overlay-status` (cron, nightly): for each linked member,
+   pull from CO `{playbooks by status, latest coaching_log summary+decisions, open action_items
+   count, health_score, workstreams}` and upsert into a new TOC `overlay_client_status` row keyed
+   by `member_id`.
+3. **Surface.** Show it as an "Overlay" panel on the TOC member view.
 
-Keep it read-only Command Overlay → TOC to start. Revisit bidirectional once the rollup proves useful.
+Read-only Command Overlay → TOC to start (matches the bridge-not-merge precedent). Revisit
+on-change push and bidirectional once the rollup proves useful. **Not built yet — needs a
+session against the TOC repo (`cmdrgroup/toc-app`) + CMDR-TOC schema, plus Q2–Q4 confirmed.**
 
 ## Prerequisites
 - Tighten Command Overlay RLS first (see [SUPABASE-NOTES.md](SUPABASE-NOTES.md)) — a cross-project
