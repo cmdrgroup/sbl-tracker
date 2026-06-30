@@ -5,10 +5,13 @@ built*, see [ARCHITECTURE.md](ARCHITECTURE.md). For deploy specifics see
 [docs/DEPLOY-VERCEL.md](docs/DEPLOY-VERCEL.md).
 
 ## What this is
-**Command Overlay** — a multi-tenant operational dashboard for the fractional Chief-of-Staff
-practice (CMDR Group). Tracks playbooks/SOPs, coaching logs, action items and AI briefs per
-client. Live (Lovable-hosted) at `sbl-tracker.lovable.app`; the older demo SOP-submission form
-lives only inside Lovable at `sbl.commandoverlay.com`. Repo: `cmdrgroup/sbl-tracker`.
+**Command Overlay** — a client-facing, multi-tenant **delivery** tool for the fractional
+Chief-of-Staff practice (CMDR Group): tracks the SOP/playbook pipeline, workstreams, agreed
+decisions, action items and AI briefs per client. **Coaching is NOT captured here** — it's owned
+by the TOC (system of record); `/coaching` is a read-only "Decisions & Commitments" view.
+**Live on Vercel at `app.commandoverlay.com`** (git-connected to `cmdrgroup/sbl-tracker`; push to
+`main` → auto-deploy). `commandoverlay.com`/`www` is a *separate* marketing-landing Vercel project.
+The older demo SOP-submission form lives only inside Lovable at `sbl.commandoverlay.com`.
 
 ## Stack
 - **TanStack Start** (`@tanstack/react-start` v1.167) on **Vite 7**, **React 19**, **TypeScript**.
@@ -39,9 +42,11 @@ npm run build                            # -> dist/client (static SPA) + dist/se
 
 ## Auth / data model gotchas
 - `src/lib/dev-bypass.ts`: on `localhost` and `*.lovable.app` preview hosts, auth is bypassed
-  with a mock "Preview User" (`commander`) + mock client, so the app is fully usable with no
-  login. Production host `sbl-tracker.lovable.app` enforces real Supabase auth. **If you deploy
-  to a new domain (e.g. Vercel), that host is NOT in the bypass list → real auth applies.**
+  with a mock "Preview User" (`commander`) + mock client, so the app is usable with no login.
+  **`app.commandoverlay.com` (and any non-localhost/non-lovable host) is NOT bypassed → real
+  Supabase auth applies.** Login is **magic-link** (`signInWithOtp`); a `commander` user
+  (`curtis@cmdr.group`) exists; Supabase Auth Site URL + redirect allow-list include
+  `app.commandoverlay.com`.
 - Every data hook in `src/lib/hooks.ts` branches on `isDevBypassHost()` and returns mock data
   in preview. Real reads/writes go straight to Supabase from the client (no server functions).
 - The app is **100% client-rendered** — no `createServerFn`, no route `loader`/`beforeLoad`,
@@ -53,6 +58,11 @@ npm run build                            # -> dist/client (static SPA) + dist/se
 - File-based routes under `src/routes/`; `_app.tsx` is the authed shell, `_app.*.tsx` are pages.
   `routeTree.gen.ts` is **generated** — don't hand-edit.
 - Path alias `@/` → `src/`.
+- **Coaching capture is removed** (coaching SoR = TOC). `/coaching` is read-only Decisions &
+  Commitments; coaching *write* hooks were deleted from `hooks.ts` (`useCoachingLogs` read stays).
+- Playbooks carry `loom_url` **and** `scribe_url` — clients author SOPs in Loom or Scribe.
+- `/register` (SOP Register) is the printable/exportable index of **approved** SOPs + links
+  (Print→PDF via `@media print` in `styles.css`; Copy-as-Markdown).
 - Keep `ARCHITECTURE.md` updated **in the same commit** as code/convention changes (CMDR house
   rule, so Viktor/Claude read current truth from GitHub).
 
@@ -64,11 +74,15 @@ command-black `#0A0A0A`, command-gold `#C4A04F`, warning-red `#C12E27`, steel-wh
 gunmetal `#2D2D2F`, slate-grey `#8B8B90`, field-green `#2B4F17`. **No gradients, no
 glassmorphism/backdrop-blur, no soft/glow shadows, radius ≤ 8px (6px default), no pills, UPPERCASE
 headings.** `.glass`/`.gradient-text` are redefined flat so consumers stay doctrine-compliant.
-Matches TOC (note: TOC's index.css currently uses Bebas Neue for display — Barlow Condensed is the
-canonical choice).
+
+**Known ecosystem inconsistency (pending alignment decision):** `cmdr-command-centre/lib/design/tokens.ts`
+specifies **Barlow Condensed** for display (what Overlay uses now), while **TOC uses Bebas Neue** for
+headings *and* a 3-tier surface layering (page `#0A0A0A` / chrome `#161618` / card `#1E1E20`). Overlay
+currently uses a flatter 2-tier surface. To match TOC exactly, switch display → Bebas Neue and add the
+`#161618` chrome layer for sidebar/topbar. Not yet done — confirm with Curtis.
 
 ## Branch / Lovable sync
-- `main` mirrors Lovable's two-way GitHub sync (commits by `lovable-dev[bot]`).
-- Migration work is on branch **`claude-code/vercel-migration`** (Vercel config + these docs).
-- Once Lovable's GitHub integration is **disconnected** (manual step in Lovable settings),
-  Claude Code → commit → push becomes the only writer and this branch can merge to `main`.
+- Work lands directly on **`main`**, and **Vercel auto-deploys `main`** to `app.commandoverlay.com`
+  (the `claude-code/vercel-migration` branch was merged).
+- Lovable's GitHub integration should be **disconnected** in Lovable settings (manual, Curtis's
+  click) so its bot can't push to the repo; the code already lives on GitHub regardless.

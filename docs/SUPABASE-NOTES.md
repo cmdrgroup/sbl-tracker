@@ -14,8 +14,8 @@ Read-only inventory taken 2026-07-01. **No schema changes were made.**
 | users | 4 | profile rows; `id` FK → `auth.users`; role ∈ commander/client_owner/team_member |
 | client_users | 2 | user↔client membership; role ∈ commander/owner/member |
 | workstreams | 14 | per-client departments/channels |
-| **playbooks** | **127** | core deliverables; type + status pipeline; loom_url, owner_name |
-| coaching_logs | 2 | Captain's Table; has `brett_sitrep` + `curtis_sitrep` (migration applied ✓) |
+| **playbooks** | **127** | core deliverables; type + status pipeline; `loom_url` + `scribe_url`, owner_name |
+| coaching_logs | 2 | Captain's Table; `brett_sitrep`/`curtis_sitrep`. **Read-only in Overlay — capture removed; coaching SoR = TOC** |
 | coaching_decisions | 9 | child of coaching_logs |
 | action_items | 13 | open/done/overdue; optional FK → coaching_logs |
 | activity_feed | 16 | per-client event log |
@@ -29,6 +29,11 @@ caller's clients) and a `handle_new_user()` trigger fn.
 ## Security advisories (all WARN, none ERROR)
 Lovable-generated; worth tightening before opening to real multi-client production use. Full
 linter docs at the remediation links.
+
+**UPDATE 2026-07-01 — items 1 & 3 RESOLVED:** migration `tighten_rls_insert_policies` was applied —
+dropped the 8 permissive `WITH CHECK (true)` INSERT policies (scoped commander/owner policies now
+govern writes) and pinned `set_updated_at`/`update_updated_at` search_path. Items 2 & 4 remain.
+Separately, migration `playbooks_scribe_url` added a nullable `playbooks.scribe_url`.
 
 1. **Permissive INSERT policies (8 tables):** `WITH CHECK (true)` on INSERT for
    action_items, activity_feed, client_users, clients, coaching_decisions, coaching_logs,

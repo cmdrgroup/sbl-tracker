@@ -1,7 +1,9 @@
 # Deploying Command Overlay to Vercel
 
-**Status:** config prepared + verified locally on branch `claude-code/vercel-migration`. The
-actual Vercel deploy is your step (needs your Vercel login). Nothing here has been deployed.
+**Status (LIVE):** Deployed on Vercel — app at **`app.commandoverlay.com`** (project `sbl-tracker`,
+**git-connected**: push to `main` auto-deploys). `commandoverlay.com`/`www` → a *separate*
+marketing-landing project. RLS migration applied; magic-link auth live with Supabase Site/redirect
+URLs set for `app.commandoverlay.com`. The notes below remain the setup reference + how redeploys work.
 
 ## What changed and why
 The app was wired by Lovable to build for **Cloudflare Workers**. Since it's a 100%

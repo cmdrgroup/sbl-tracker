@@ -1,5 +1,13 @@
 # ☀️ Morning briefing — Command Overlay off Lovable
 
+> **CURRENT STATUS (updated 2026-07-01):** Migration complete and **live on Vercel at
+> `app.commandoverlay.com`** (git-connected; push `main` auto-deploys). Shipped since this briefing:
+> CMDR-doctrine branding; RLS tightened (applied); coaching capture removed (→ read-only Decisions &
+> Commitments, coaching SoR = TOC); `scribe_url` on playbooks; **SOP Register** (`/register`,
+> print→PDF + copy-as-markdown). Marketing landing lives at `commandoverlay.com`/`www` (separate
+> Vercel project). Still pending (Curtis): disconnect Lovable's GitHub; build the TOC↔Overlay bridge
+> (`docs/TOC-INTEGRATION.md`). The original overnight briefing follows for history.
+
 What I did overnight (1 Jul 2026) while you slept. **Everything is reversible**: all work is on
 a local branch `claude-code/vercel-migration`, **nothing pushed**, **nothing deployed**, **no
 database changes**.

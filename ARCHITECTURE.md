@@ -10,8 +10,9 @@ client; tracks the **deliverables pipeline** (playbooks/SOPs), **coaching cadenc
 Table logs + decisions + action items), **AI briefs**, and a per-client **activity feed**.
 
 - **Product name:** Command Overlay (formerly "SBL Tracker" / "SBL Playbook").
-- **Hosting today:** Lovable, `sbl-tracker.lovable.app`. Repo `cmdrgroup/sbl-tracker`.
-- **Target hosting:** Vercel as a static SPA; eventual domain `commandoverlay.com`.
+- **Hosting:** **Vercel** static SPA. App at **`app.commandoverlay.com`** (Vercel project
+  `sbl-tracker`, git-connected → push `main` auto-deploys). `commandoverlay.com`/`www` is a
+  *separate* marketing-landing Vercel project. Repo `cmdrgroup/sbl-tracker`. Lovable retired as host.
 
 ## Tech
 | Layer | Choice |
@@ -27,21 +28,24 @@ Table logs + decisions + action items), **AI briefs**, and a per-client **activi
 - `__root.tsx` — HTML shell (`shellComponent`), head/meta, 404.
 - `_app.tsx` — authed layout: loads clients, provides `ClientContext`, renders `AppShell`.
 - `_app.index.tsx` — Overview/dashboard. `_app.playbooks` · `_app.sops` · `_app.submit`
-  (quick SOP submit) · `_app.coaching` (logs + decisions) · `_app.insights` (AI briefs) ·
-  `_app.team` · `_app.settings`.
+  (quick SOP submit — Loom and/or Scribe) · `_app.register` (**SOP Register** — printable/
+  exportable index of approved SOPs + links) · `_app.coaching` (**read-only Decisions &
+  Commitments**; coaching SoR = TOC) · `_app.insights` (AI briefs) · `_app.team` · `_app.settings`.
 
 ## Data model (Supabase `public`)
-`clients` (tenants) → has many `workstreams`, `playbooks` (127 rows; type ∈ sop/framework/
-script/policy/campaign/playbook/other; status pipeline not_started→submitted→under_review→
-refined→approved), `coaching_logs` (+ `coaching_decisions`, `brett_sitrep`/`curtis_sitrep`),
+`clients` (tenants) → has many `workstreams`, `playbooks` (type ∈ sop/framework/script/policy/
+campaign/playbook/other; status pipeline not_started→submitted→under_review→refined→approved;
+recordings via `loom_url` and/or `scribe_url`), `coaching_logs` (+ `coaching_decisions`,
+`brett_sitrep`/`curtis_sitrep` — **read-only in Overlay; capture removed, coaching owned by TOC**),
 `action_items` (open/done/overdue), `activity_feed`, `ai_briefs`, `client_integrations`
-(loom/slack/google_drive/xero/notion/clickup — 0 rows, scaffolded). `users` ↔ `clients` via
+(loom/slack/google_drive/xero/notion/clickup — scaffolded). `users` ↔ `clients` via
 `client_users` (roles commander/owner/member). Full column detail + FKs in
 [docs/SUPABASE-NOTES.md](docs/SUPABASE-NOTES.md).
 
 ## Key client modules (`src/lib/`)
 - `supabase.ts` — singleton client; URL + anon key hardcoded.
 - `hooks.ts` — all TanStack Query hooks; each branches on `isDevBypassHost()` for mock data.
+  Coaching *write* hooks removed (read-only `useCoachingLogs` remains).
 - `dev-bypass.ts` — mock user/profile/clients for localhost + lovable preview hosts.
 - `auth-context.ts` / `auth-provider.tsx` — Supabase Auth session; real auth only on the
   published production host.
@@ -59,8 +63,10 @@ refined→approved), `coaching_logs` (+ `coaching_decisions`, `brett_sitrep`/`cu
   inlining the Vite config (see docs/DEPLOY-VERCEL.md "Full independence").
 
 ## Place in the CMDR system
-Command Overlay is a **client-delivery tracker** sitting alongside, not inside, the production
-**TOC** app (`commandtoc.com`, `cmdrgroup/toc-app`, Supabase `CMDR-TOC`). Data is intentionally
-**not unified** across CMDR Supabase projects (bridge-not-merge pattern). Feeding Command
-Overlay client-tracking data into TOC is a future integration — options in
+Command Overlay is the **client-facing delivery tracker** sitting alongside, not inside, the
+production **TOC** app (`commandtoc.com`, `cmdrgroup/toc-app`, Supabase `CMDR-TOC`). Ownership
+split: **Overlay = SOP/playbook delivery**; **TOC = coaching system-of-record** (sessions,
+sitreps, decisions, dossiers). Data is **not unified** across CMDR Supabase projects
+(bridge-not-merge). Decided: every Overlay `client` also exists as a TOC `member`. The TOC↔Overlay
+bridge (curated coaching feed in, delivery status out) is future work — see
 [docs/TOC-INTEGRATION.md](docs/TOC-INTEGRATION.md).
