@@ -451,17 +451,15 @@ export function Dashboard({ client }: Props) {
 
       {/* Coaching + actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Panel title="Captain's Table" subtitle={latestLog ? `Latest coaching log · Week ${latestLog.week_number ?? "—"}` : "No sessions yet"} className="lg:col-span-2">
+        <Panel title="Decisions & Commitments" subtitle={latestLog ? `Latest session · Week ${latestLog.week_number ?? "—"}` : "No sessions yet"} className="lg:col-span-2">
           {latestLog ? (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-mono text-muted-foreground">
-                <span className="px-2 py-0.5 rounded bg-success/15 text-success border border-success/30 uppercase tracking-wider">{latestLog.mood ?? "—"}</span>
                 <span>{formatShortDate(latestLog.session_date)}</span>
                 <span>·</span>
                 <span>Week {latestLog.week_number ?? "—"}</span>
               </div>
-              <div className="text-[13px] sm:text-[14px] leading-relaxed">{latestLog.summary ?? "No summary."}</div>
-              {(latestLog.decisions?.length ?? 0) > 0 && (
+              {(latestLog.decisions?.length ?? 0) > 0 ? (
                 <div>
                   <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2">Decisions locked</div>
                   <div className="space-y-1.5">
@@ -473,10 +471,12 @@ export function Dashboard({ client }: Props) {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <div className="text-[12px] text-muted-foreground">No decisions locked in the latest session.</div>
               )}
             </div>
           ) : (
-            <div className="text-[13px] text-muted-foreground">No coaching sessions recorded yet.</div>
+            <div className="text-[13px] text-muted-foreground">No decisions recorded yet.</div>
           )}
         </Panel>
 

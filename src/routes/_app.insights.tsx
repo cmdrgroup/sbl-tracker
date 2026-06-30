@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Sparkles, TrendingUp, AlertTriangle, Target, ArrowUpRight, CheckCircle2, Loader2, X } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
 import { useRequiredClient } from "@/lib/client-context";
-import { usePlaybooks, useWorkstreams, useCoachingLogs, useActionItems, useGenerateBrief, useAiBriefs } from "@/lib/hooks";
+import { usePlaybooks, useWorkstreams, useActionItems, useGenerateBrief, useAiBriefs } from "@/lib/hooks";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_app/insights")({
@@ -11,10 +11,10 @@ export const Route = createFileRoute("/_app/insights")({
 });
 
 const SEV: Record<string, string> = {
-  warning: "border-warning/40 from-warning/8",
-  info: "border-info/40 from-info/8",
-  success: "border-success/40 from-success/8",
-  primary: "border-primary/40 from-primary/8",
+  warning: "border-warning/40",
+  info: "border-info/40",
+  success: "border-success/40",
+  primary: "border-primary/40",
 };
 
 const SEV_ICON: Record<string, string> = {
@@ -36,7 +36,6 @@ function InsightsPage() {
   const { client } = useRequiredClient();
   const { data: playbooks = [], isLoading: loadPb } = usePlaybooks(client.id);
   const { data: workstreams = [] } = useWorkstreams(client.id);
-  const { data: logs = [] } = useCoachingLogs(client.id);
   const { data: actionItems = [] } = useActionItems(client.id);
   const { data: pastBriefs = [] } = useAiBriefs(client.id);
   const generateBrief = useGenerateBrief();
@@ -88,7 +87,7 @@ function InsightsPage() {
         severity: "success",
         title: `${best.name} leading the playbook`,
         body: `${best.name} has ${best.approved} of ${best.total} playbooks approved (${Math.round(best.pct * 100)}%). This is the department to study and replicate.`,
-        actions: ["Capture pattern in coaching log", "Replicate model with other departments"],
+        actions: ["Document the winning pattern", "Replicate model with other departments"],
       });
     }
 
@@ -124,12 +123,12 @@ function InsightsPage() {
       icon: Sparkles,
       severity: "primary",
       title: "Overall playbook progress",
-      body: `${approvedPb} of ${totalPb} playbooks approved (${pct}%) across ${workstreams.length} departments. ${logs.length} coaching sessions logged with ${logs.reduce((s, l) => s + (l.decisions?.length ?? 0), 0)} decisions locked.`,
+      body: `${approvedPb} of ${totalPb} playbooks approved (${pct}%) across ${workstreams.length} departments.`,
       actions: ["Generate weekly brief for Brett"],
     });
 
     return result;
-  }, [playbooks, workstreams, logs, actionItems]);
+  }, [playbooks, workstreams, actionItems]);
 
   const totalPb = playbooks.length;
   const approvedPb = playbooks.filter((p) => p.status === "approved").length;
@@ -148,7 +147,7 @@ function InsightsPage() {
       <PageHeader
         eyebrow={`${client.name} · AI`}
         title="Insights from the Overlay"
-        subtitle="Continuous analysis across SOPs, coaching logs, and operational signals — surfaced before it becomes a problem."
+        subtitle="Continuous analysis across SOPs, playbooks, and operational signals — surfaced before it becomes a problem."
         actions={
           <button
             onClick={handleGenerate}
@@ -167,7 +166,7 @@ function InsightsPage() {
         <Panel accent>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+              <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center shrink-0">
                 <Sparkles className="h-4 w-4 text-background" />
               </div>
               <div>
@@ -184,7 +183,7 @@ function InsightsPage() {
           {generateBrief.isPending ? (
             <div className="flex items-center gap-2 py-6">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-[13px] text-muted-foreground">Analysing playbooks, coaching logs, and action items...</span>
+              <span className="text-[13px] text-muted-foreground">Analysing playbooks and action items...</span>
             </div>
           ) : generateBrief.isError ? (
             <div className="text-[13px] text-destructive">
@@ -203,7 +202,7 @@ function InsightsPage() {
       {!showLiveBrief && (
         <Panel accent>
           <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center shrink-0">
               <Sparkles className="h-4 w-4 text-background" />
             </div>
             <div className="flex-1 min-w-0">
@@ -243,7 +242,7 @@ function InsightsPage() {
           return (
             <div
               key={ins.title}
-              className={`bg-gradient-to-br to-transparent bg-card border rounded-xl p-4 md:p-5 ${SEV[ins.severity]}`}
+              className={`bg-card border rounded-md p-4 md:p-5 ${SEV[ins.severity]}`}
             >
               <div className="flex items-start gap-3">
                 <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${SEV_ICON[ins.severity]}`}>

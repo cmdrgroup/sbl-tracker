@@ -22,7 +22,7 @@ const nav = [
   { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: "72%" },
   { to: "/sops", label: "SOPs", icon: ClipboardList, badge: "4" },
   { to: "/submit", label: "Submit", icon: Send, badge: undefined },
-  { to: "/coaching", label: "Coaching Logs", icon: Target, badge: undefined },
+  { to: "/coaching", label: "Decisions", icon: Target, badge: undefined },
   { to: "/team", label: "Team", icon: Users, badge: undefined },
   { to: "/insights", label: "AI Insights", icon: Sparkles, badge: "new" },
   { to: "/settings", label: "Settings", icon: Settings, badge: undefined },

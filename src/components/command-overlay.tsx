@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Command } from "cmdk";
 import { useNavigate } from "@tanstack/react-router";
 import {
-  Search, FileText, Users, BookOpen, Sparkles, Plus, BarChart3,
+  Search, FileText, Users, BookOpen, Sparkles, BarChart3,
   CheckCircle2, Calendar, Settings, ArrowRight, Zap, Target, Bell,
 } from "lucide-react";
 import { useActiveClient } from "@/lib/client-context";
@@ -88,10 +88,9 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
               </Command.Group>
             )}
 
-            <Item icon={Plus} label="Log a Captain's Table session" hint="New coaching log" shortcut="L" onSelect={() => go("/coaching")} />
             <Item icon={CheckCircle2} label="Approve pending SOP" hint="4 awaiting review" shortcut="A" onSelect={() => go("/sops")} />
             <Item icon={FileText} label="Submit Loom recording" hint="Add to playbook" shortcut="S" onSelect={() => go("/playbooks")} />
-            <Item icon={Target} label="Add action item" hint="To open list" onSelect={() => go("/coaching")} />
+            <Item icon={Target} label="Add action item" hint="On the dashboard" onSelect={() => go("/")} />
             <Item icon={Bell} label="Send weekly client update" hint="Auto-draft from this week" onSelect={() => go("/insights")} />
 
             <Command.Group heading="Switch client" className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono px-2 py-1.5 mt-2">
@@ -122,7 +121,7 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
               <Item icon={BarChart3} label="Overview" hint="Dashboard" onSelect={() => go("/")} />
               <Item icon={BookOpen} label="Playbooks" onSelect={() => go("/playbooks")} />
               <Item icon={Users} label="Team" onSelect={() => go("/team")} />
-              <Item icon={Calendar} label="Coaching Logs" onSelect={() => go("/coaching")} />
+              <Item icon={Calendar} label="Decisions & Commitments" onSelect={() => go("/coaching")} />
               <Item icon={Sparkles} label="AI Insights" onSelect={() => go("/insights")} />
               <Item icon={FileText} label="SOPs" onSelect={() => go("/sops")} />
               <Item icon={Settings} label="Settings" onSelect={() => go("/settings")} />

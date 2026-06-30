@@ -201,102 +201,11 @@ export function useCoachingLogs(clientId: string) {
   });
 }
 
-export function useCreateCoachingLog() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      decisions,
-      ...log
-    }: Omit<CoachingLog, "id" | "created_at" | "decisions"> & {
-      decisions?: string[];
-    }) => {
-      // Insert the coaching log
-      const { data: logData, error: logError } = await supabase
-        .from("coaching_logs")
-        .insert(log)
-        .select()
-        .single();
-      if (logError) throw logError;
-
-      // Insert decisions if any
-      if (decisions?.length) {
-        const decisionRows = decisions.map((d) => ({
-          coaching_log_id: logData.id,
-          decision: d,
-        }));
-        const { error: decError } = await supabase
-          .from("coaching_decisions")
-          .insert(decisionRows);
-        if (decError) throw decError;
-      }
-
-      return logData;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["coaching_logs", data.client_id] });
-    },
-  });
-}
-
-export function useUpdateCoachingLog() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      id,
-      decisions,
-      ...patch
-    }: Partial<Omit<CoachingLog, "decisions">> & {
-      id: string;
-      decisions?: string[];
-    }) => {
-      const { data: logData, error: logError } = await supabase
-        .from("coaching_logs")
-        .update(patch)
-        .eq("id", id)
-        .select()
-        .single();
-      if (logError) throw logError;
-
-      // Replace decisions if provided (full overwrite)
-      if (decisions !== undefined) {
-        const { error: delErr } = await supabase
-          .from("coaching_decisions")
-          .delete()
-          .eq("coaching_log_id", id);
-        if (delErr) throw delErr;
-        const cleaned = decisions.map((d) => d.trim()).filter(Boolean);
-        if (cleaned.length) {
-          const { error: insErr } = await supabase
-            .from("coaching_decisions")
-            .insert(cleaned.map((d) => ({ coaching_log_id: id, decision: d })));
-          if (insErr) throw insErr;
-        }
-      }
-      return logData;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["coaching_logs", data.client_id] });
-    },
-  });
-}
-
-export function useDeleteCoachingLog() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, clientId }: { id: string; clientId: string }) => {
-      // Decisions and action_items.coaching_log_id should be set null/cascade by FK;
-      // explicitly clear decisions to be safe.
-      await supabase.from("coaching_decisions").delete().eq("coaching_log_id", id);
-      const { error } = await supabase.from("coaching_logs").delete().eq("id", id);
-      if (error) throw error;
-      return { id, clientId };
-    },
-    onSuccess: ({ clientId }) => {
-      queryClient.invalidateQueries({ queryKey: ["coaching_logs", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["action_items", clientId] });
-    },
-  });
-}
+// Coaching is owned by the TOC (system of record). Command Overlay no longer
+// captures coaching logs/decisions — useCoachingLogs (read) remains so the
+// read-only Decisions & Commitments view + dashboard can render existing/curated
+// data. Write hooks (create/update/delete) intentionally removed. See
+// docs/TOC-INTEGRATION.md.
 
 // ─── ACTION ITEMS ───────────────────────────────────────────
 
