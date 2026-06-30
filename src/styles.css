@@ -144,3 +144,18 @@
   .scrollbar-thin::-webkit-scrollbar-thumb { background: #2D2D2F; border-radius: 3px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
+
+/* Print — used by the SOP Register (Print / Save as PDF). Hides app chrome and
+   flattens the dark theme to clean black-on-white. */
+@media print {
+  :root { color-scheme: light; }
+  body { background: #fff !important; color: #000 !important; }
+  aside, header, .no-print { display: none !important; }
+  .print-doc { padding: 0 !important; max-width: none !important; }
+  .print-doc * {
+    background: transparent !important;
+    color: #000 !important;
+    border-color: #d1d5db !important;
+  }
+  .print-doc a { color: #000 !important; text-decoration: underline; }
+}

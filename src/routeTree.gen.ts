@@ -15,6 +15,7 @@ import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppSubmitRouteImport } from './routes/_app.submit'
 import { Route as AppSopsRouteImport } from './routes/_app.sops'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRegisterRouteImport } from './routes/_app.register'
 import { Route as AppPlaybooksRouteImport } from './routes/_app.playbooks'
 import { Route as AppInsightsRouteImport } from './routes/_app.insights'
 import { Route as AppCoachingRouteImport } from './routes/_app.coaching'
@@ -48,6 +49,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRegisterRoute = AppRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPlaybooksRoute = AppPlaybooksRouteImport.update({
   id: '/playbooks',
   path: '/playbooks',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/coaching': typeof AppCoachingRoute
   '/insights': typeof AppInsightsRoute
   '/playbooks': typeof AppPlaybooksRoute
+  '/register': typeof AppRegisterRoute
   '/settings': typeof AppSettingsRoute
   '/sops': typeof AppSopsRoute
   '/submit': typeof AppSubmitRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/coaching': typeof AppCoachingRoute
   '/insights': typeof AppInsightsRoute
   '/playbooks': typeof AppPlaybooksRoute
+  '/register': typeof AppRegisterRoute
   '/settings': typeof AppSettingsRoute
   '/sops': typeof AppSopsRoute
   '/submit': typeof AppSubmitRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/_app/coaching': typeof AppCoachingRoute
   '/_app/insights': typeof AppInsightsRoute
   '/_app/playbooks': typeof AppPlaybooksRoute
+  '/_app/register': typeof AppRegisterRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/sops': typeof AppSopsRoute
   '/_app/submit': typeof AppSubmitRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/coaching'
     | '/insights'
     | '/playbooks'
+    | '/register'
     | '/settings'
     | '/sops'
     | '/submit'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/coaching'
     | '/insights'
     | '/playbooks'
+    | '/register'
     | '/settings'
     | '/sops'
     | '/submit'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_app/coaching'
     | '/_app/insights'
     | '/_app/playbooks'
+    | '/_app/register'
     | '/_app/settings'
     | '/_app/sops'
     | '/_app/submit'
@@ -178,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/register': {
+      id: '/_app/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AppRegisterRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/playbooks': {
       id: '/_app/playbooks'
       path: '/playbooks'
@@ -206,6 +225,7 @@ interface AppRouteChildren {
   AppCoachingRoute: typeof AppCoachingRoute
   AppInsightsRoute: typeof AppInsightsRoute
   AppPlaybooksRoute: typeof AppPlaybooksRoute
+  AppRegisterRoute: typeof AppRegisterRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSopsRoute: typeof AppSopsRoute
   AppSubmitRoute: typeof AppSubmitRoute
@@ -217,6 +237,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCoachingRoute: AppCoachingRoute,
   AppInsightsRoute: AppInsightsRoute,
   AppPlaybooksRoute: AppPlaybooksRoute,
+  AppRegisterRoute: AppRegisterRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSopsRoute: AppSopsRoute,
   AppSubmitRoute: AppSubmitRoute,
