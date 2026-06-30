@@ -43,14 +43,11 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
       onClick={() => onOpenChange(false)}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-md" />
-
-      {/* Glow */}
-      <div className="absolute top-[10vh] left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute inset-0 bg-background/80" />
 
       {/* Palette */}
       <div
-        className="relative w-full max-w-[640px] glass rounded-2xl shadow-elevated overflow-hidden animate-in zoom-in-95 slide-in-from-top-2 duration-200"
+        className="relative w-full max-w-[640px] glass rounded-md shadow-elevated overflow-hidden animate-in zoom-in-95 slide-in-from-top-2 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <Command className="bg-transparent" loop>
@@ -79,7 +76,7 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
                   onSelect={() => go("/insights")}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer data-[selected=true]:bg-primary/15 data-[selected=true]:border-primary/30 border border-transparent"
                 >
-                  <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+                  <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shrink-0">
                     <Sparkles className="h-3.5 w-3.5 text-background" />
                   </div>
                   <div className="flex-1 min-w-0">

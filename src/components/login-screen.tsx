@@ -29,27 +29,27 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
+        {/* Wordmark */}
         <div className="mb-10 text-center">
-          <div className="mb-2 text-sm font-medium tracking-[0.3em] text-white/40 uppercase">
-            CMDR · Group
+          <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+            ⬛ CMDR · Group
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="font-display text-4xl font-bold uppercase tracking-[0.08em] text-foreground">
             Command Overlay
           </h1>
-          <p className="mt-2 text-sm text-white/50">
+          <p className="mt-2 text-sm text-muted-foreground">
             The operational layer your business is missing.
           </p>
         </div>
 
         {sent ? (
           /* ─── Magic link sent confirmation ─── */
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+          <div className="rounded-md border border-border bg-card p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-primary/40 bg-secondary">
               <svg
-                className="h-6 w-6 text-emerald-400"
+                className="h-6 w-6 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -62,10 +62,12 @@ export function LoginScreen() {
                 />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-white">Check your email</h2>
-            <p className="mt-2 text-sm text-white/60">
-              We sent a magic link to{" "}
-              <span className="font-medium text-white/80">{email}</span>. Click
+            <h2 className="font-display text-xl font-bold uppercase tracking-[0.06em] text-foreground">
+              Check your email
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a secure link to{" "}
+              <span className="font-medium text-foreground">{email}</span>. Click
               it to sign in.
             </p>
             <button
@@ -73,7 +75,7 @@ export function LoginScreen() {
                 setSent(false);
                 setEmail("");
               }}
-              className="mt-6 text-sm font-medium text-white/40 transition-colors hover:text-white/60"
+              className="mt-6 font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground transition-colors hover:text-foreground"
             >
               Use a different email
             </button>
@@ -82,11 +84,11 @@ export function LoginScreen() {
           /* ─── Login form ─── */
           <form
             onSubmit={handleLogin}
-            className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm"
+            className="rounded-md border border-border bg-card p-8"
           >
             <label
               htmlFor="email"
-              className="mb-2 block text-sm font-medium text-white/70"
+              className="mb-2 block font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground"
             >
               Email address
             </label>
@@ -97,23 +99,23 @@ export function LoginScreen() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
               required
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/30 focus:ring-1 focus:ring-white/20"
+              className="w-full rounded-md border border-border bg-input px-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/40"
             />
 
             {error && (
-              <p className="mt-2 text-sm text-red-400">{error}</p>
+              <p className="mt-2 text-sm text-destructive">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading || !email}
-              className="mt-4 w-full rounded-lg bg-[#E67E22] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#d35400] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 w-full rounded-md bg-primary px-4 py-3 font-display text-sm font-bold uppercase tracking-[0.12em] text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Sending..." : "Send magic link"}
+              {loading ? "Sending…" : "Send magic link"}
             </button>
 
-            <p className="mt-4 text-center text-xs text-white/30">
-              No password needed. We'll email you a secure link.
+            <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">
+              No password needed — we'll email you a secure link
             </p>
           </form>
         )}

@@ -55,7 +55,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       {/* Logo */}
       <div className="px-5 py-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-background border border-primary/40 flex items-center justify-center shadow-[0_0_20px_oklch(0.72_0.105_80_/_0.25)]">
+          <div className="h-9 w-9 rounded-md bg-background border border-primary/40 flex items-center justify-center">
             <Command className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
           <div>
@@ -169,7 +169,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       {/* User */}
       <div className="p-3 border-t border-border">
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-secondary/40">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-[11px] font-bold text-background">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-[11px] font-bold text-primary-foreground">
             {profile ? getInitials(profile.full_name) : "?"}
           </div>
           <div className="flex-1 min-w-0">
@@ -199,7 +199,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       {mobileNavOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div
-            className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-background/80"
             onClick={() => setMobileNavOpen(false)}
           />
           <aside className="relative w-[280px] max-w-[85vw] border-r border-border bg-surface flex flex-col animate-in slide-in-from-left duration-200">
@@ -211,7 +211,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 border-b border-border bg-surface/30 backdrop-blur-xl flex items-center px-3 md:px-6 gap-2 md:gap-4 sticky top-0 z-20">
+        <header className="h-14 border-b border-border bg-surface flex items-center px-3 md:px-6 gap-2 md:gap-4 sticky top-0 z-20">
           <button
             onClick={() => setMobileNavOpen(true)}
             className="md:hidden h-9 w-9 rounded-md hover:bg-secondary/60 flex items-center justify-center shrink-0"

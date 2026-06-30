@@ -4,13 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* CMDR Group Brand Doctrine fonts: Bebas Neue (display), Barlow (body), JetBrains Mono (data). */
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* CMDR Group Design System fonts — Barlow Condensed (display), Barlow (body),
+   JetBrains Mono (data). Canonical: cmdr-command-centre/lib/design/tokens.ts. */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @theme inline {
   --font-sans: "Barlow", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-display: "Bebas Neue", "Oswald", Impact, sans-serif;
+  --font-display: "Barlow Condensed", "Oswald", Impact, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -50,18 +51,19 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  /* Doctrine: radius caps at 8px; 6px is primary. Pills out of vocabulary. */
+  --radius: 0.375rem;
 
-  /* CMDR Doctrine palette — canonical hex from CMDR brand doctrine (matches TOC). */
+  /* CMDR Group Design System — canonical palette (hex from tokens.ts). */
   --background: #0A0A0A;          /* command-black */
   --foreground: #E4E4E7;          /* steel-white */
 
-  --surface: #141416;
-  --surface-elevated: #1E1E20;    /* tactical-fill */
+  --surface: #1E1E20;             /* tactical-steel */
+  --surface-elevated: #242426;
 
-  --card: #1E1E20;                /* tactical-fill */
+  --card: #1E1E20;                /* tactical-steel */
   --card-foreground: #E4E4E7;
-  --popover: #18181A;
+  --popover: #1E1E20;
   --popover-foreground: #E4E4E7;
 
   --primary: #C4A04F;             /* command-gold */
@@ -70,7 +72,7 @@
   --secondary: #2D2D2F;           /* gunmetal */
   --secondary-foreground: #E4E4E7;
 
-  --muted: #242426;
+  --muted: #2D2D2F;
   --muted-foreground: #8B8B90;    /* slate-grey */
 
   --accent: #C12E27;              /* warning-red */
@@ -80,23 +82,21 @@
   --destructive-foreground: #F4F4F5;
 
   --success: #2B4F17;             /* field-green */
-  --warning: #C4A04F;             /* command-gold (doctrine: amber → gold) */
-  --info: #4A5568;                /* tactical-steel */
+  --warning: #C4A04F;             /* command-gold */
+  --info: #4A5568;                /* tactical-steel-blue */
 
-  --border: #2D2D2F;              /* gunmetal */
-  --input: #2D2D2F;
+  --border: #363638;              /* border-default */
+  --input: #2D2D2F;               /* gunmetal */
   --ring: #C4A04F;                /* command-gold */
 
   --chart-1: #C4A04F;             /* command-gold */
   --chart-2: #C12E27;             /* warning-red */
   --chart-3: #2B4F17;             /* field-green */
-  --chart-4: #4A5568;             /* tactical-steel */
+  --chart-4: #4A5568;             /* tactical-steel-blue */
   --chart-5: #8B8B90;             /* slate-grey */
 
-  --gradient-primary: linear-gradient(135deg, #C4A04F, #A8863B);
-  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(196, 160, 79, 0.18), transparent 70%);
-  --shadow-glow: 0 0 40px rgba(196, 160, 79, 0.25);
-  --shadow-elevated: 0 20px 60px -20px rgba(0, 0, 0, 0.7);
+  /* Doctrine: elevation = border + bg step-up; shadows hard/short/black, no glow. */
+  --shadow-elevated: 0 12px 32px -8px rgba(0, 0, 0, 0.7);
 }
 
 .dark {
@@ -113,7 +113,6 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
   }
 
@@ -126,21 +125,20 @@
   .font-mono {
     font-family: var(--font-mono);
   }
+  /* Display headings — Barlow Condensed, doctrine wide tracking. */
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.06em;
   }
+  /* Doctrine: no glassmorphism. `glass` is a solid tactical-steel panel so any
+     existing consumer renders as a flat bordered surface (no backdrop-blur). */
   .glass {
-    background: rgba(20, 20, 22, 0.75);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
   }
+  /* Doctrine: no gradient text. Render flat command-gold. */
   .gradient-text {
-    background: linear-gradient(135deg, #D8BC79, #A8863B);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--color-primary);
   }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: #2D2D2F; border-radius: 3px; }

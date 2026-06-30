@@ -257,7 +257,7 @@ export function Dashboard({ client }: Props) {
           <button
             onClick={handleGenerateBrief}
             disabled={generateBrief.isPending}
-            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[12px] font-medium flex items-center gap-1.5 shadow-[0_0_20px_oklch(0.62_0.22_280_/_0.3)] disabled:opacity-60"
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[12px] font-medium flex items-center gap-1.5 disabled:opacity-60"
           >
             {generateBrief.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -275,7 +275,7 @@ export function Dashboard({ client }: Props) {
         <Panel accent>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+              <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shrink-0">
                 <Sparkles className="h-3.5 w-3.5 text-background" />
               </div>
               <div>
@@ -309,10 +309,10 @@ export function Dashboard({ client }: Props) {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="Operational Health" value={client.health_score} suffix="/100" trend={+4} accent="oklch(0.62 0.22 280)" sparkline={[60, 65, 68, 72, 75, 78, 81, 84, 87]} />
-        <Kpi label="Playbook Progress" value={playbookPct} suffix="%" trend={0} accent="oklch(0.72 0.18 195)" sparkline={[10, 15, 20, 28, 35, 40, 48, 55, playbookPct]} />
-        <Kpi label="In Progress" value={openCount} trend={0} invertTrend accent="oklch(0.78 0.16 75)" sparkline={[12, 11, 10, 9, 8, 7, 6, 5, openCount]} />
-        <Kpi label="Total Playbooks" value={totalPb} suffix="" trend={0} accent="oklch(0.72 0.18 155)" sparkline={[20, 40, 60, 80, 90, 100, 110, 115, totalPb]} />
+        <Kpi label="Operational Health" value={client.health_score} suffix="/100" trend={+4} accent="#C4A04F" sparkline={[60, 65, 68, 72, 75, 78, 81, 84, 87]} />
+        <Kpi label="Playbook Progress" value={playbookPct} suffix="%" trend={0} accent="#C4A04F" sparkline={[10, 15, 20, 28, 35, 40, 48, 55, playbookPct]} />
+        <Kpi label="In Progress" value={openCount} trend={0} invertTrend accent="#C12E27" sparkline={[12, 11, 10, 9, 8, 7, 6, 5, openCount]} />
+        <Kpi label="Total Playbooks" value={totalPb} suffix="" trend={0} accent="#8B8B90" sparkline={[20, 40, 60, 80, 90, 100, 110, 115, totalPb]} />
       </div>
 
       {/* Two col */}
@@ -364,7 +364,7 @@ export function Dashboard({ client }: Props) {
         >
           <div className="space-y-3">
             <div className="flex items-start gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 mt-0.5">
+              <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles className="h-3.5 w-3.5 text-background" />
               </div>
               <div className="text-[13px] leading-relaxed">
@@ -559,7 +559,7 @@ export function Dashboard({ client }: Props) {
         className="max-w-2xl"
       >
         <div className="flex items-start gap-3">
-          <div className="h-9 w-9 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 mt-1">
+          <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center shrink-0 mt-1">
             <Send className="h-4 w-4 text-background" />
           </div>
           <div className="flex-1 min-w-0">
@@ -582,8 +582,8 @@ function Kpi({
   const points = sparkline.map((v, i) => `${(i / (sparkline.length - 1)) * 100},${30 - ((v - min) / range) * 28}`).join(" ");
 
   return (
-    <div className="relative bg-card border border-border rounded-xl p-3 md:p-4 overflow-hidden group hover:border-primary/40 transition-colors">
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${accent.replace(")", " / 0.15)")}, transparent 70%)` }} />
+    <div className="relative bg-card border border-border rounded-md p-3 md:p-4 overflow-hidden group hover:border-primary/40 transition-colors">
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-primary/5" />
       <div className="relative">
         <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-2 truncate">{label}</div>
         <div className="flex items-end justify-between gap-2">
@@ -613,8 +613,8 @@ function Panel({
 }: { title?: string; subtitle?: string; children: React.ReactNode; className?: string; accent?: boolean }) {
   return (
     <div className={cn(
-      "bg-card border border-border rounded-xl p-4",
-      accent && "border-primary/30 bg-gradient-to-br from-primary/5 to-transparent",
+      "bg-card border border-border rounded-md p-4",
+      accent && "border-primary/30 bg-primary/5",
       className,
     )}>
       <div className="flex items-baseline justify-between mb-4">

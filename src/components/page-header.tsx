@@ -42,8 +42,8 @@ export function Panel({
 }) {
   return (
     <div className={cn(
-      "bg-card border border-border rounded-xl p-4",
-      accent && "border-primary/30 bg-gradient-to-br from-primary/5 to-transparent",
+      "bg-card border border-border rounded-md p-4",
+      accent && "border-primary/30 bg-primary/5",
       className,
     )}>
       {(title || actions) && (
