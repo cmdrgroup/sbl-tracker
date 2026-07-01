@@ -1,8 +1,23 @@
 # Feeding Command Overlay into the TOC — design proposal
 
-**Status: PROPOSAL for discussion — nothing built.** Goal (from Curtis): Command Overlay should
-eventually feed client-tracking data into the **TOC** so client progress shows up in the central
-operations brain.
+**Status: BUILT — Overlay → TOC delivery bridge is LIVE (2026-07-01).** The TOC→Overlay coaching
+feed was **dropped for privacy**: TOC coaching is deeply personal (divorce, health, co-parenting)
+and Overlay is client-facing, so nothing from TOC coaching flows to the client app. Only
+non-sensitive **delivery aggregates flow UP**.
+
+What's live:
+- **Overlay:** `public.client_delivery_rollup(client_id)` RPC — aggregates only (playbook counts
+  by stage, %, workstreams, open/overdue actions, health). Migration
+  `20260701170000_client_delivery_rollup.sql`.
+- **CMDR-TOC:** `members.overlay_client_id` (mapped: Brett Poole → Overlay client `sbl`) +
+  `overlay_client_status` table; `sync-overlay-status` edge function pulls the rollup and upserts
+  it; **nightly cron** (00:20 Brisbane) + on-demand. Source staged in `TOC-App/supabase/`
+  (`functions/sync-overlay-status`, `migrations/0048_overlay_bridge.sql`).
+- **TOC UI:** `OverlayDeliveryPanel` on the member pre-call view (with a Refresh button) — staged
+  locally in `TOC-App` (uncommitted; ship alongside current TOC work — do NOT push my changes to
+  toc-app main blindly, it has WIP).
+
+Original design proposal (kept for reference):
 
 ## The two systems
 | | Command Overlay CRM (`bsvreslnbuqkjgnufpis`) | CMDR-TOC (`ymtcarlatmvlzhnayttm`) |
