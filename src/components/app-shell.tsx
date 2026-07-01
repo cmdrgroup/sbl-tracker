@@ -19,8 +19,8 @@ type Props = {
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutDashboard, badge: undefined as string | undefined },
-  { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: "72%" },
-  { to: "/sops", label: "SOPs", icon: ClipboardList, badge: "4" },
+  { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: undefined },
+  { to: "/sops", label: "SOPs", icon: ClipboardList, badge: undefined },
   { to: "/register", label: "SOP Register", icon: FileText, badge: undefined },
   { to: "/submit", label: "Submit", icon: Send, badge: undefined },
   { to: "/coaching", label: "Decisions", icon: Target, badge: undefined },
@@ -248,14 +248,6 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
           </button>
 
           <div className="flex-1" />
-
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-success/10 border border-success/30">
-            <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[11px] font-mono uppercase tracking-wider text-success">Live · synced 12s ago</span>
-          </div>
-
-          {/* Mobile compact live dot */}
-          <div className="md:hidden h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
 
           <button className="relative h-9 w-9 rounded-md hover:bg-secondary/60 flex items-center justify-center">
             <Bell className="h-4 w-4 text-muted-foreground" />

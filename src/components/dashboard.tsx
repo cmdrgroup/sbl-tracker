@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Sparkles, AlertCircle, CheckCircle2, Clock, FileText, Loader2, Plus, X, Send, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { usePlaybooks, useWorkstreams, useCoachingLogs, useActivityFeed, useActionItems, useUpdateActionItem, useCreateActionItem, useGenerateBrief } from "@/lib/hooks";
+import { useAuth } from "@/lib/auth-context";
 import { QuickSubmitForm } from "@/components/quick-submit-form";
 import type { Client } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,11 @@ function formatShortDate(dateStr: string): string {
 }
 
 export function Dashboard({ client }: Props) {
+  const { profile } = useAuth();
+  const firstName = profile?.full_name?.trim().split(/\s+/)[0];
+  const greetName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : null;
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const { data: playbooks = [], isLoading: loadPb } = usePlaybooks(client.id);
   const { data: workstreams = [], isLoading: loadWs } = useWorkstreams(client.id);
   const { data: coachingLogs = [] } = useCoachingLogs(client.id);
@@ -209,7 +215,7 @@ export function Dashboard({ client }: Props) {
             <span>{latestLog ? `Week ${latestLog.week_number ?? "—"}` : "—"}</span>
           </div>
           <h1 className="text-[22px] sm:text-[26px] md:text-[30px] font-medium tracking-tight leading-tight">
-            Good morning, Curtis. <span className="text-muted-foreground">Here's where {client.name} stands.</span>
+            {timeGreeting}{greetName ? `, ${greetName}` : ""}. <span className="text-muted-foreground">Here's where {client.name} stands.</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -359,7 +365,7 @@ export function Dashboard({ client }: Props) {
         {/* AI Insight */}
         <Panel
           title="AI Insight"
-          subtitle="Generated 12 min ago"
+          subtitle="From your current data"
           accent
         >
           <div className="space-y-3">
