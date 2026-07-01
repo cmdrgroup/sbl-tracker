@@ -9,10 +9,12 @@ inline-styled HTML so they render across email clients. Dark theme.
 Email Templates** (each template's HTML box). They use GoTrue's `{{ .ConfirmationURL }}` variable.
 First point Auth → **SMTP settings** at your Resend SMTP creds so these actually send via Resend
 (and lift the built-in rate limit).
-- `auth-magic-link.html`     → "Magic Link" template
-- `auth-confirm-signup.html` → "Confirm signup" template
-- `auth-invite.html`         → "Invite user" template
-- `auth-reset-password.html` → "Reset Password" template
+- `auth-magic-link.html`       → "Magic Link" template
+- `auth-confirm-signup.html`   → "Confirm signup" template
+- `auth-invite.html`           → "Invite user" template
+- `auth-reset-password.html`   → "Reset Password" template
+- `auth-change-email.html`     → "Change Email Address" template (uses `{{ .NewEmail }}` too)
+- `auth-reauthentication.html` → "Reauthentication" template — sends a **6-digit code**, uses `{{ .Token }}` (no link/button)
 
 **Resend transactional** (sent from your own code / support tool via the Resend API) — these use
 `{{name}}`, `{{app_url}}`, `{{message}}`, `{{ticket_id}}` placeholders (swap for your templating):
