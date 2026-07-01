@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, Calendar, Loader2 } from "lucide-react";
+import { CheckCircle2, Calendar, Loader2, Pencil, Save, X } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page-header";
-import { useCoachingLogs, useActionItems, useStaff } from "@/lib/hooks";
+import { useCoachingLogs, useActionItems, useStaff, useUpdateClient } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import type { CoachingLog, ActionItem } from "@/lib/types";
+import type { CoachingLog, ActionItem, Client } from "@/lib/types";
 
 // NOTE: Coaching is owned by the TOC (system of record). Command Overlay is the
 // client-facing DELIVERY tool, so it does NOT capture coaching here — this page is a
@@ -61,6 +62,8 @@ function DecisionsPage() {
         title="Decisions & Commitments"
         subtitle="Decisions locked in your sessions and the delivery commitments that follow. Coaching is run from the TOC; this is your read-only record."
       />
+
+      <CommanderNote key={client.id} client={client} />
 
       <div className="grid grid-cols-3 gap-3">
         <Panel title="Decisions Locked" subtitle="All time">
@@ -153,6 +156,84 @@ function DecisionsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function CommanderNote({ client }: { client: Client }) {
+  const { profile } = useAuth();
+  const isCommander = profile?.role === "commander";
+  const updateClient = useUpdateClient();
+  const [note, setNote] = useState(client.client_note ?? "");
+  const [updatedAt, setUpdatedAt] = useState<string | null>(client.client_note_updated_at ?? null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note);
+
+  const save = async () => {
+    const trimmed = draft.trim();
+    const ts = new Date().toISOString();
+    await updateClient.mutateAsync({
+      id: client.id,
+      patch: { client_note: trimmed || null, client_note_updated_at: ts },
+    });
+    setNote(trimmed);
+    setUpdatedAt(ts);
+    setEditing(false);
+  };
+
+  // Client with no note (and not a commander) → nothing to show.
+  if (!note && !isCommander) return null;
+
+  return (
+    <Panel>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
+          Commander's Note
+          {updatedAt && !editing && (
+            <span className="text-muted-foreground/70"> · updated {formatDate(updatedAt)}</span>
+          )}
+        </div>
+        {isCommander && !editing && (
+          <button
+            onClick={() => { setDraft(note); setEditing(true); }}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-3 w-3" /> {note ? "Edit" : "Add note"}
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={4}
+            autoFocus
+            placeholder="A short, client-safe update — what we decided, what's next. The client sees this verbatim."
+            className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-primary/40"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={save}
+              disabled={updateClient.isPending}
+              className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[11px] font-medium text-primary-foreground disabled:opacity-50"
+            >
+              <Save className="h-3.5 w-3.5" /> {updateClient.isPending ? "Saving…" : "Save"}
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="flex items-center gap-1 rounded-md border border-border bg-secondary/60 px-3 py-1.5 text-[11px]"
+            >
+              <X className="h-3.5 w-3.5" /> Cancel
+            </button>
+          </div>
+        </div>
+      ) : note ? (
+        <p className="whitespace-pre-wrap text-[13px] md:text-[14px] leading-relaxed text-foreground/90">{note}</p>
+      ) : (
+        <p className="text-[12px] italic text-muted-foreground">No note yet — add a short client-safe update.</p>
+      )}
+    </Panel>
   );
 }
 

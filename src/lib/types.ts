@@ -12,6 +12,8 @@ export type Client = {
   coaching_cadence: string | null;
   created_at: string;
   updated_at: string;
+  client_note?: string | null;
+  client_note_updated_at?: string | null;
 };
 
 export type UserProfile = {
