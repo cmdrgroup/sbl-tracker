@@ -70,7 +70,7 @@ function RegisterPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1100px] print-doc">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1600px] print-doc">
       <PageHeader
         eyebrow={`${client.name} · Finalised`}
         title="SOP Register"
@@ -118,7 +118,7 @@ function RegisterPage() {
                         {s.owner_name ?? "—"} · <span className="capitalize">{s.type}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] shrink-0">
+                    <div className="flex items-center gap-3 text-[11px] shrink-0 whitespace-nowrap">
                       {s.loom_url && (
                         <a href={s.loom_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                           <Play className="h-3 w-3" /> Loom
