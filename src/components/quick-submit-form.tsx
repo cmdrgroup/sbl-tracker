@@ -120,7 +120,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={compact ? "space-y-2.5" : "space-y-3"}>
-      <div>
+      <div data-tour="submit-name">
         <label className={labelCls}>Your name *</label>
         <select
           required
@@ -180,7 +180,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         </div>
       )}
 
-      <div>
+      <div data-tour="submit-links">
         <label className={labelCls}>Loom URL</label>
         <input
           type="url"
@@ -211,6 +211,7 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
       <div className="flex items-center gap-2 pt-1">
         <button
           type="submit"
+          data-tour="submit-button"
           disabled={
             createPlaybook.isPending ||
             updatePlaybook.isPending ||

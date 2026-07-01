@@ -2,7 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ClipboardList, Users, Settings, Sparkles,
-  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X, LogOut, Send, FileText,
+  Bell, Search, ChevronDown, Command, Plus, Activity, Target, Menu, X, LogOut, Send, FileText, HelpCircle,
 } from "lucide-react";
 import type { Client } from "@/lib/types";
 import { useActiveClient } from "@/lib/client-context";
@@ -18,15 +18,15 @@ type Props = {
 };
 
 const nav = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, badge: undefined as string | undefined },
-  { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: undefined },
-  { to: "/sops", label: "SOPs", icon: ClipboardList, badge: undefined },
-  { to: "/register", label: "SOP Register", icon: FileText, badge: undefined },
-  { to: "/submit", label: "Submit", icon: Send, badge: undefined },
-  { to: "/coaching", label: "Decisions", icon: Target, badge: undefined },
-  { to: "/team", label: "Team", icon: Users, badge: undefined },
-  { to: "/insights", label: "AI Insights", icon: Sparkles, badge: "new" },
-  { to: "/settings", label: "Settings", icon: Settings, badge: undefined },
+  { to: "/", label: "Overview", icon: LayoutDashboard, badge: undefined as string | undefined, tour: undefined as string | undefined },
+  { to: "/playbooks", label: "Playbooks", icon: BookOpen, badge: undefined, tour: undefined },
+  { to: "/sops", label: "SOPs", icon: ClipboardList, badge: undefined, tour: undefined },
+  { to: "/register", label: "SOP Register", icon: FileText, badge: undefined, tour: "nav-register" },
+  { to: "/submit", label: "Submit", icon: Send, badge: undefined, tour: "nav-submit" },
+  { to: "/coaching", label: "Decisions", icon: Target, badge: undefined, tour: undefined },
+  { to: "/team", label: "Team", icon: Users, badge: undefined, tour: undefined },
+  { to: "/insights", label: "AI Insights", icon: Sparkles, badge: "new", tour: undefined },
+  { to: "/settings", label: "Settings", icon: Settings, badge: undefined, tour: undefined },
 ] as const;
 
 // Helper: generate initials from a name
@@ -145,6 +145,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
             <Link
               key={item.to}
               to={item.to as any}
+              data-tour={item.tour}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-colors",
                 active
@@ -248,6 +249,15 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
           </button>
 
           <div className="flex-1" />
+
+          <button
+            onClick={() => window.dispatchEvent(new Event("co:replay-tour"))}
+            className="h-9 w-9 rounded-md hover:bg-secondary/60 flex items-center justify-center"
+            title="Take the tour"
+            aria-label="Take the tour"
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          </button>
 
           <button className="relative h-9 w-9 rounded-md hover:bg-secondary/60 flex items-center justify-center">
             <Bell className="h-4 w-4 text-muted-foreground" />

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppShell } from "@/components/app-shell";
 import { CommandOverlay } from "@/components/command-overlay";
+import { GuidedTour } from "@/components/guided-tour";
 import { AuthProvider } from "@/components/auth-provider";
 import { LoginScreen } from "@/components/login-screen";
 import { useAuth } from "@/lib/auth-context";
@@ -40,7 +41,7 @@ function AuthGate() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <div className="mb-3 text-sm font-medium tracking-[0.3em] text-white/40 uppercase">
             CMDR · Group
@@ -82,7 +83,7 @@ function AppWithClients() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-md text-center">
           <div className="text-lg font-semibold text-red-400 mb-2">Failed to load clients</div>
           <p className="text-sm text-white/50 mb-4">{error.message}</p>
@@ -96,7 +97,7 @@ function AppWithClients() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-lg font-semibold text-white/60">Loading client...</div>
       </div>
     );
@@ -104,7 +105,7 @@ function AppWithClients() {
 
   if (!activeClient && clientList.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-md text-center">
           <div className="text-lg font-semibold text-white/80 mb-2">No clients found</div>
           <p className="text-sm text-white/50 mb-4">Your account isn't linked to any clients yet. Contact your commander to get access.</p>
@@ -118,7 +119,7 @@ function AppWithClients() {
 
   if (!activeClient) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-lg font-semibold text-white/60">Loading client...</div>
       </div>
     );
@@ -141,6 +142,7 @@ function AppWithClients() {
         <Outlet />
       </AppShell>
       <CommandOverlay open={cmdOpen} onOpenChange={setCmdOpen} />
+      <GuidedTour />
     </ClientContext.Provider>
   );
 }
