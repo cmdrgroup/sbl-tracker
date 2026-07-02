@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useUpdatePlaybook } from "@/lib/hooks";
+import { useUpdatePlaybook, useInsertActivity } from "@/lib/hooks";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import type { Playbook, Workstream } from "@/lib/types";
 import { Loader2, Play, MessageSquare, ArrowRight, FileText } from "lucide-react";
@@ -33,6 +34,7 @@ interface Props {
 
 export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
   const updatePlaybook = useUpdatePlaybook();
+  const insertActivity = useInsertActivity();
 
   const [code, setCode] = useState("");
   const [type, setType] = useState<Playbook["type"]>("sop");
@@ -72,6 +74,21 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
       scribe_url: scribeUrl || null,
       notes: notes || null,
     });
+
+    // Activity feed entry for the pipeline movement
+    void insertActivity.mutateAsync({
+      client_id: sop.client_id,
+      type: "playbook",
+      actor_name: "Operator",
+      message: `"${sop.title}" moved to ${next.replace(/_/g, " ")}`,
+    }).catch(() => { /* feed write is best-effort */ });
+
+    // TOC bridge (Fable 5 §6.1) — delivery status flows upstream so Curtis
+    // sees SOP progress in the member brief. Fire-and-forget.
+    void supabase.functions.invoke("toc-delivery-bridge", {
+      body: { client_id: sop.client_id, playbook_title: sop.title, status: next },
+    }).catch(() => { /* never block the SOP workflow on the bridge */ });
+
     onClose();
   };
 
