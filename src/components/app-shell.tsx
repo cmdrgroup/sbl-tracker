@@ -7,6 +7,7 @@ import {
 import type { Client } from "@/lib/types";
 import { useActiveClient } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
+import { CommandRail } from "@/lib/command-rail";
 import { isDemoClient, stripDemoPrefix } from "@/lib/demo-seed";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +43,7 @@ function getInitials(name: string): string {
 export function AppShell({ children, activeClient, onClientChange, onOpenCommand }: Props) {
   const loc = useLocation();
   const { clients } = useActiveClient();
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [clientOpen, setClientOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -191,7 +192,14 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="min-h-screen flex flex-col">
+      {/* Cross-app rail — synced from toc-app/src/lib/command-rail.tsx */}
+      <CommandRail
+        currentAppKey="overlay"
+        userEmail={profile?.email ?? user?.email ?? null}
+        signOut={signOut}
+      />
+      <div className="flex-1 min-h-0 bg-background text-foreground flex">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-[260px] border-r border-border bg-surface flex-col shrink-0">
         {sidebar}
@@ -266,6 +274,7 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
         </header>
 
         <main className="flex-1 overflow-auto scrollbar-thin">{children}</main>
+      </div>
       </div>
     </div>
   );
