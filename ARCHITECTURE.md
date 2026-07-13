@@ -35,11 +35,14 @@ Table logs + decisions + action items), **AI briefs**, and a per-client **activi
 ## Data model (Supabase `public`)
 `clients` (tenants) → has many `workstreams`, `playbooks` (type ∈ sop/framework/script/policy/
 campaign/playbook/other; status pipeline not_started→submitted→under_review→refined→approved;
-recordings via `loom_url` and/or `scribe_url`), `coaching_logs` (+ `coaching_decisions`,
+recordings via `loom_url` and/or `scribe_url`; `submitted_by`/`submitted_at` stamp the
+authenticated INDIVIDUAL who shipped each submission — `owner_name` stays the free-text
+department owner; powers the "Your submissions" trail on `/submit`), `coaching_logs` (+ `coaching_decisions`,
 `brett_sitrep`/`curtis_sitrep` — **read-only in Overlay; capture removed, coaching owned by TOC**),
 `action_items` (open/done/overdue), `activity_feed`, `ai_briefs`, `client_integrations`
 (loom/slack/google_drive/xero/notion/clickup — scaffolded). `users` ↔ `clients` via
-`client_users` (roles commander/owner/member). Full column detail + FKs in
+`client_users` (roles commander/owner/member; `users.role` team_member gets a slimmed nav —
+no Team/Settings/AI-Insights — while data stays RLS-scoped as before). Full column detail + FKs in
 [docs/SUPABASE-NOTES.md](docs/SUPABASE-NOTES.md).
 
 ## Key client modules (`src/lib/`)

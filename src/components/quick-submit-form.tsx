@@ -3,6 +3,7 @@ import { Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useCreatePlaybook, useUpdatePlaybook, useWorkstreams, usePlaybooks } from "@/lib/hooks";
 import { useRequiredClient } from "@/lib/client-context";
+import { useAuth } from "@/lib/auth-context";
 
 type Props = {
   /** Optional callback when a submission completes successfully */
@@ -19,6 +20,7 @@ type Props = {
  */
 export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
   const { client } = useRequiredClient();
+  const { user } = useAuth();
   const { data: workstreams = [] } = useWorkstreams(client.id);
   const { data: playbooks = [] } = usePlaybooks(client.id);
   const createPlaybook = useCreatePlaybook();
@@ -79,6 +81,10 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         loom_url: loomUrl || selectedSop.loom_url || null,
         scribe_url: scribeUrl || selectedSop.scribe_url || null,
         owner_name: selectedSop.owner_name ?? owner,
+        // Attribution: the authenticated person who shipped this recording —
+        // owner_name above is the department owner, not the submitter.
+        submitted_by: user?.id ?? null,
+        submitted_at: new Date().toISOString(),
       });
       const label = selectedSop.code
         ? `${selectedSop.code} · ${selectedSop.title}`
@@ -101,6 +107,8 @@ export function QuickSubmitForm({ onSubmitted, compact = false }: Props) {
         loom_duration_min: null,
         scribe_url: scribeUrl || null,
         notes: null,
+        submitted_by: user?.id ?? null,
+        submitted_at: new Date().toISOString(),
       });
       toast.success("New SOP created", {
         description: `"${title}" added to the pipeline.`,

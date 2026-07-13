@@ -56,6 +56,10 @@ export type Playbook = {
   loom_duration_min: number | null;
   scribe_url?: string | null;
   notes: string | null;
+  // Individual submitter attribution (20260713 migration) — owner_name is the
+  // department owner, submitted_by is WHO actually hit Submit.
+  submitted_by?: string | null;
+  submitted_at?: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields

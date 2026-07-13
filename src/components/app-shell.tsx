@@ -30,6 +30,12 @@ const nav = [
   { to: "/settings", label: "Settings", icon: Settings, badge: undefined, tour: undefined },
 ] as const;
 
+// Role-differentiated nav: rank-and-file team members submit + track their own
+// work; the client owner and the commander additionally run the room. Data was
+// always RLS-scoped by client — this closes the UI gap where every role saw
+// all nine items (Settings/Team included).
+const TEAM_MEMBER_HIDDEN = new Set<string>(["/team", "/settings", "/insights"]);
+
 // Helper: generate initials from a name
 function getInitials(name: string): string {
   return name
@@ -139,7 +145,9 @@ export function AppShell({ children, activeClient, onClientChange, onOpenCommand
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
-        {nav.map((item) => {
+        {nav
+          .filter((item) => profile?.role !== "team_member" || !TEAM_MEMBER_HIDDEN.has(item.to))
+          .map((item) => {
           const active = loc.pathname === item.to;
           const Icon = item.icon;
           return (
