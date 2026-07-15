@@ -52,33 +52,66 @@ const STEPS: Step[] = [
 ];
 
 const DONE_KEY = "co_tour_v1_done";
+// In-progress step, sessionStorage — a remount or full page reload mid-tour
+// resumes at the saved step instead of restarting from step 1 (the "keeps
+// repeating" glitch). Cleared on finish/skip.
+const SESSION_KEY = "co_tour_v1_step";
 type Rect = { top: number; left: number; width: number; height: number };
+
+function readSessionStep(sessionKey: string): number | null {
+  try {
+    const raw = sessionStorage.getItem(sessionKey);
+    if (raw === null) return null;
+    const n = Number(raw);
+    return Number.isInteger(n) && n >= 0 && n < STEPS.length ? n : null;
+  } catch { return null; }
+}
 
 export function GuidedTour() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const key = `${DONE_KEY}_${profile?.id ?? "anon"}`;
+  const sessionKey = `${SESSION_KEY}_${profile?.id ?? "anon"}`;
 
   const [active, setActive] = useState(false);
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const pollRef = useRef<number | null>(null);
+  // One-shot guard: the profile object's identity can change on auth refetch —
+  // never re-arm the auto-launch timer once it has fired for this mount.
+  const launchedRef = useRef(false);
 
-  const start = useCallback(() => { setIdx(0); setActive(true); }, []);
+  // Session write is synchronous so a click-triggered navigation (spotlighted
+  // element) still resumes at the step we just moved to.
+  const goto = useCallback((next: number) => {
+    try { sessionStorage.setItem(sessionKey, String(next)); } catch { /* ignore */ }
+    setIdx(next);
+  }, [sessionKey]);
+
+  const start = useCallback(() => { goto(0); setActive(true); }, [goto]);
   const finish = useCallback(() => {
     setActive(false);
+    try { sessionStorage.removeItem(sessionKey); } catch { /* ignore */ }
     try { localStorage.setItem(key, "1"); } catch { /* ignore */ }
-  }, [key]);
+  }, [key, sessionKey]);
 
-  // Auto-launch once per user (a beat after first render).
+  // Auto-launch once per user (a beat after first render). Requires a loaded
+  // profile — never launches (or persists) against the "anon" fallback key.
   useEffect(() => {
-    if (!profile) return;
+    if (!profile?.id || launchedRef.current) return;
     let done = false;
     try { done = localStorage.getItem(key) === "1"; } catch { /* ignore */ }
     if (done) return;
-    const t = setTimeout(() => setActive(true), 900);
+    launchedRef.current = true;
+    const saved = readSessionStep(sessionKey);
+    if (saved !== null) {
+      setIdx(saved);
+      setActive(true);
+      return;
+    }
+    const t = setTimeout(() => { goto(0); setActive(true); }, 900);
     return () => clearTimeout(t);
-  }, [profile, key]);
+  }, [profile, key, sessionKey, goto]);
 
   // Replay from a "Take the tour" control anywhere.
   useEffect(() => {
@@ -96,12 +129,22 @@ export function GuidedTour() {
     if (!step.target) { setRect(null); return; }
     setRect(null);
     let tries = 0;
+    let targetEl: HTMLElement | null = null;
+    // Clicking the spotlighted element counts as "Next" — the spotlight
+    // invites the click; without this, clicking it navigated and broke the
+    // tour instead of advancing it.
+    const advanceOnClick = () => {
+      if (idx === STEPS.length - 1) finish();
+      else goto(idx + 1);
+    };
     const find = () => {
       const el = document.querySelector(`[data-tour="${step.target}"]`) as HTMLElement | null;
       if (!el) return false;
       el.scrollIntoView({ block: "center", behavior: "smooth" });
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+      targetEl = el;
+      el.addEventListener("click", advanceOnClick, { once: true, capture: true });
       return true;
     };
     if (!find()) {
@@ -110,8 +153,11 @@ export function GuidedTour() {
         if (find() || tries > 25) { if (pollRef.current) window.clearInterval(pollRef.current); }
       }, 100);
     }
-    return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
-  }, [active, idx, step, navigate]);
+    return () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      targetEl?.removeEventListener("click", advanceOnClick, { capture: true });
+    };
+  }, [active, idx, step, navigate, goto, finish]);
 
   // Keep the spotlight glued to the target on scroll/resize.
   useEffect(() => {
@@ -192,14 +238,14 @@ export function GuidedTour() {
           <div className="flex items-center gap-2">
             {idx > 0 && (
               <button
-                onClick={() => setIdx((i) => i - 1)}
+                onClick={() => goto(idx - 1)}
                 className="rounded-md border border-border bg-secondary/60 px-3 py-1.5 text-[11px]"
               >
                 Back
               </button>
             )}
             <button
-              onClick={() => (isLast ? finish() : setIdx((i) => i + 1))}
+              onClick={() => (isLast ? finish() : goto(idx + 1))}
               className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[11px] font-medium text-primary-foreground"
             >
               {isLast ? <>Done <Check className="h-3.5 w-3.5" /></> : "Next"}
