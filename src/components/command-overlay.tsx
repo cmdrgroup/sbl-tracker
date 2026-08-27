@@ -5,6 +5,7 @@ import {
   Search, FileText, Users, BookOpen, Sparkles, BarChart3,
   CheckCircle2, Calendar, Settings, ArrowRight, Zap, Target, Bell,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useActiveClient } from "@/lib/client-context";
 
 type Props = {
@@ -147,7 +148,7 @@ export function CommandOverlay({ open, onOpenChange }: Props) {
 
 function Item({
   icon: Icon, label, hint, shortcut, onSelect,
-}: { icon: any; label: string; hint?: string; shortcut?: string; onSelect?: () => void }) {
+}: { icon: LucideIcon; label: string; hint?: string; shortcut?: string; onSelect?: () => void }) {
   return (
     <Command.Item
       value={label}

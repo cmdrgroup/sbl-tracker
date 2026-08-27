@@ -11,6 +11,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type WorkstreamRecord = {
+  id: string;
+  name: string;
+  owner_name: string | null;
+};
+
+type PlaybookRecord = {
+  status: string;
+  workstream_id: string;
+};
+
+type CoachingDecisionRecord = {
+  decision: string;
+};
+
+type CoachingLogRecord = {
+  decisions: CoachingDecisionRecord[] | null;
+  week_number: number;
+  session_date: string;
+  mood: string | null;
+  summary: string | null;
+};
+
+type ActionItemRecord = {
+  status: string;
+  title: string;
+  owner_name: string | null;
+  due_date: string | null;
+};
+
+type ActivityRecord = {
+  actor_name: string | null;
+  message: string;
+};
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -54,36 +89,36 @@ serve(async (req) => {
       ]);
 
     const client = clientRes.data;
-    const workstreams = workstreamsRes.data ?? [];
-    const playbooks = playbooksRes.data ?? [];
-    const coachingLogs = coachingRes.data ?? [];
-    const actionItems = actionsRes.data ?? [];
-    const activity = activityRes.data ?? [];
+    const workstreams = (workstreamsRes.data ?? []) as WorkstreamRecord[];
+    const playbooks = (playbooksRes.data ?? []) as PlaybookRecord[];
+    const coachingLogs = (coachingRes.data ?? []) as CoachingLogRecord[];
+    const actionItems = (actionsRes.data ?? []) as ActionItemRecord[];
+    const activity = (activityRes.data ?? []) as ActivityRecord[];
 
     // ─── Compute stats for context ────────────────────────
     const totalPb = playbooks.length;
-    const approvedPb = playbooks.filter((p: any) => p.status === "approved").length;
-    const inReview = playbooks.filter((p: any) => p.status === "under_review" || p.status === "refined").length;
-    const notStarted = playbooks.filter((p: any) => p.status === "not_started").length;
+    const approvedPb = playbooks.filter((p) => p.status === "approved").length;
+    const inReview = playbooks.filter((p) => p.status === "under_review" || p.status === "refined").length;
+    const notStarted = playbooks.filter((p) => p.status === "not_started").length;
     const pct = totalPb > 0 ? Math.round((approvedPb / totalPb) * 100) : 0;
 
-    const openActions = actionItems.filter((a: any) => a.status !== "done");
-    const overdueActions = actionItems.filter((a: any) => a.status === "overdue");
+    const openActions = actionItems.filter((a) => a.status !== "done");
+    const overdueActions = actionItems.filter((a) => a.status === "overdue");
 
-    const wsBreakdown = workstreams.map((ws: any) => {
-      const items = playbooks.filter((p: any) => p.workstream_id === ws.id);
-      const approved = items.filter((p: any) => p.status === "approved").length;
-      const stuck = items.filter((p: any) => p.status === "under_review" || p.status === "refined").length;
+    const wsBreakdown = workstreams.map((ws) => {
+      const items = playbooks.filter((p) => p.workstream_id === ws.id);
+      const approved = items.filter((p) => p.status === "approved").length;
+      const stuck = items.filter((p) => p.status === "under_review" || p.status === "refined").length;
       return `- ${ws.name} (${ws.owner_name ?? "no owner"}): ${approved}/${items.length} approved, ${stuck} in review`;
     }).join("\n");
 
     const recentDecisions = coachingLogs
-      .flatMap((l: any) => (l.decisions ?? []).map((d: any) => d.decision))
+      .flatMap((log) => (log.decisions ?? []).map((decision) => decision.decision))
       .slice(0, 10);
 
     const recentCoachingSummaries = coachingLogs
       .slice(0, 3)
-      .map((l: any) => `Week ${l.week_number} (${l.session_date}, mood: ${l.mood}): ${l.summary}`)
+      .map((log) => `Week ${log.week_number} (${log.session_date}, mood: ${log.mood}): ${log.summary}`)
       .join("\n");
 
     // ─── Build prompt ─────────────────────────────────────
@@ -112,10 +147,10 @@ RECENT DECISIONS:
 ${recentDecisions.length > 0 ? recentDecisions.map((d: string) => `- ${d}`).join("\n") : "No decisions recorded yet."}
 
 OPEN ACTION ITEMS:
-${openActions.length > 0 ? openActions.map((a: any) => `- ${a.title} (${a.owner_name ?? "unassigned"}, status: ${a.status}${a.due_date ? ", due: " + a.due_date : ""})`).join("\n") : "None."}
+${openActions.length > 0 ? openActions.map((action) => `- ${action.title} (${action.owner_name ?? "unassigned"}, status: ${action.status}${action.due_date ? ", due: " + action.due_date : ""})`).join("\n") : "None."}
 
 RECENT ACTIVITY:
-${activity.slice(0, 8).map((a: any) => `- ${a.actor_name ?? "System"}: ${a.message}`).join("\n") || "No activity."}
+${activity.slice(0, 8).map((entry) => `- ${entry.actor_name ?? "System"}: ${entry.message}`).join("\n") || "No activity."}
 
 Write the brief now. Keep it under 300 words.`;
 

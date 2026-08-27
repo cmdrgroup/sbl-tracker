@@ -11,14 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppTeamRouteImport } from './routes/_app.team'
-import { Route as AppSubmitRouteImport } from './routes/_app.submit'
-import { Route as AppSopsRouteImport } from './routes/_app.sops'
-import { Route as AppSettingsRouteImport } from './routes/_app.settings'
-import { Route as AppRegisterRouteImport } from './routes/_app.register'
-import { Route as AppPlaybooksRouteImport } from './routes/_app.playbooks'
-import { Route as AppInsightsRouteImport } from './routes/_app.insights'
 import { Route as AppCoachingRouteImport } from './routes/_app.coaching'
+import { Route as AppInsightsRouteImport } from './routes/_app.insights'
+import { Route as AppPlaybooksRouteImport } from './routes/_app.playbooks'
+import { Route as AppRegisterRouteImport } from './routes/_app.register'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppSopsRouteImport } from './routes/_app.sops'
+import { Route as AppSubmitRouteImport } from './routes/_app.submit'
+import { Route as AppTeamRouteImport } from './routes/_app.team'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -29,34 +29,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTeamRoute = AppTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSubmitRoute = AppSubmitRouteImport.update({
-  id: '/submit',
-  path: '/submit',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSopsRoute = AppSopsRouteImport.update({
-  id: '/sops',
-  path: '/sops',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRegisterRoute = AppRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPlaybooksRoute = AppPlaybooksRouteImport.update({
-  id: '/playbooks',
-  path: '/playbooks',
+const AppCoachingRoute = AppCoachingRouteImport.update({
+  id: '/coaching',
+  path: '/coaching',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInsightsRoute = AppInsightsRouteImport.update({
@@ -64,9 +39,34 @@ const AppInsightsRoute = AppInsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCoachingRoute = AppCoachingRouteImport.update({
-  id: '/coaching',
-  path: '/coaching',
+const AppPlaybooksRoute = AppPlaybooksRouteImport.update({
+  id: '/playbooks',
+  path: '/playbooks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRegisterRoute = AppRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSopsRoute = AppSopsRouteImport.update({
+  id: '/sops',
+  path: '/sops',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubmitRoute = AppSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -162,46 +162,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/team': {
-      id: '/_app/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof AppTeamRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/submit': {
-      id: '/_app/submit'
-      path: '/submit'
-      fullPath: '/submit'
-      preLoaderRoute: typeof AppSubmitRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/sops': {
-      id: '/_app/sops'
-      path: '/sops'
-      fullPath: '/sops'
-      preLoaderRoute: typeof AppSopsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/register': {
-      id: '/_app/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof AppRegisterRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/playbooks': {
-      id: '/_app/playbooks'
-      path: '/playbooks'
-      fullPath: '/playbooks'
-      preLoaderRoute: typeof AppPlaybooksRouteImport
+    '/_app/coaching': {
+      id: '/_app/coaching'
+      path: '/coaching'
+      fullPath: '/coaching'
+      preLoaderRoute: typeof AppCoachingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/insights': {
@@ -211,11 +176,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInsightsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/coaching': {
-      id: '/_app/coaching'
-      path: '/coaching'
-      fullPath: '/coaching'
-      preLoaderRoute: typeof AppCoachingRouteImport
+    '/_app/playbooks': {
+      id: '/_app/playbooks'
+      path: '/playbooks'
+      fullPath: '/playbooks'
+      preLoaderRoute: typeof AppPlaybooksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/register': {
+      id: '/_app/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AppRegisterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sops': {
+      id: '/_app/sops'
+      path: '/sops'
+      fullPath: '/sops'
+      preLoaderRoute: typeof AppSopsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/submit': {
+      id: '/_app/submit'
+      path: '/submit'
+      fullPath: '/submit'
+      preLoaderRoute: typeof AppSubmitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/team': {
+      id: '/_app/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AppTeamRouteImport
       parentRoute: typeof AppRoute
     }
   }

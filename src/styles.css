@@ -1,12 +1,12 @@
+/* CMDR Group Design System fonts — Bebas Neue (display, matches TOC), Barlow (body),
+   JetBrains Mono (data). */
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
-/* CMDR Group Design System fonts — Bebas Neue (display, matches TOC), Barlow (body),
-   JetBrains Mono (data). */
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @theme inline {
   --font-sans: "Barlow", "Inter", system-ui, sans-serif;

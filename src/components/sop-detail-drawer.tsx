@@ -53,7 +53,7 @@ export function SopDetailDrawer({ sop, workstreams, open, onClose }: Props) {
     setScribeUrl(sop.scribe_url ?? "");
     setNotes(sop.notes ?? "");
     setSaved(false);
-  }, [sop?.id]);
+  }, [sop]);
 
   if (!sop) return null;
 
